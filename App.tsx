@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Alarm, AppState, MissionType, Difficulty, RepeatMode } from './types';
 import { Dashboard } from './components/Dashboard';
 import { AlarmLockdown } from './components/AlarmLockdown';
-import { UserProfile } from './components/UserProfile';
+import { SettingsPage } from './components/UserProfile'; // Imported from file, content is now settings
 import { LanguageProvider } from './i18n';
 import { UserProvider, useUser } from './UserContext';
 
@@ -22,7 +22,7 @@ const AppContent: React.FC = () => {
       id: '1', 
       time: '07:30', 
       enabled: true, 
-      label: '工作', 
+      label: 'work', 
       missionType: MissionType.MATH, 
       difficulty: Difficulty.MEDIUM,
       repeatMode: RepeatMode.WORKDAYS,
@@ -33,7 +33,7 @@ const AppContent: React.FC = () => {
       id: '2', 
       time: '08:00', 
       enabled: false, 
-      label: '备用', 
+      label: 'other', 
       missionType: MissionType.SHAKE, 
       difficulty: Difficulty.EASY,
       repeatMode: RepeatMode.ONCE,
@@ -75,7 +75,7 @@ const AppContent: React.FC = () => {
   // Time Check Loop
   useEffect(() => {
     const interval = setInterval(() => {
-      if (appState !== AppState.DASHBOARD && appState !== AppState.PROFILE) return;
+      if (appState !== AppState.DASHBOARD && appState !== AppState.SETTINGS) return;
 
       const now = new Date();
       const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
@@ -131,13 +131,13 @@ const AppContent: React.FC = () => {
           onAddAlarm={handleAddAlarm} 
           onToggleAlarm={handleToggleAlarm}
           onDeleteAlarm={handleDeleteAlarm}
-          onOpenProfile={() => setAppState(AppState.PROFILE)}
+          onOpenSettings={() => setAppState(AppState.SETTINGS)}
           isDark={isDark}
         />
       )}
 
-      {appState === AppState.PROFILE && (
-        <UserProfile 
+      {appState === AppState.SETTINGS && (
+        <SettingsPage 
             onBack={() => setAppState(AppState.DASHBOARD)} 
             isDark={isDark}
             themeMode={themeMode}

@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useUser } from '../UserContext';
 import { useLanguage } from '../i18n';
 import { Calendar } from './Calendar';
-import { NeumorphicButton } from './NeumorphicButton';
-import { User, Globe, ChevronLeft, Moon, Sun, Award, LogOut, Camera, Smartphone } from 'lucide-react';
+import { Globe, ChevronLeft, Moon, Sun, Award, Smartphone, Info, RotateCcw } from 'lucide-react';
 import { ThemeMode } from '../App';
 
 interface Props {
@@ -13,14 +12,13 @@ interface Props {
   setThemeMode: (mode: ThemeMode) => void;
 }
 
-export const UserProfile: React.FC<Props> = ({ onBack, isDark, themeMode, setThemeMode }) => {
-  const { user, login, logout, streak, history } = useUser();
+export const SettingsPage: React.FC<Props> = ({ onBack, isDark, themeMode, setThemeMode }) => {
+  const { streak, history, clearData } = useUser();
   const { t, language, setLanguage } = useLanguage();
-  const [usernameInput, setUsernameInput] = useState('');
 
-  const handleLogin = () => {
-    if (usernameInput.trim()) {
-      login(usernameInput.trim());
+  const handleClearData = () => {
+    if (confirm(t('resetConfirm'))) {
+      clearData();
     }
   };
 
@@ -35,69 +33,27 @@ export const UserProfile: React.FC<Props> = ({ onBack, isDark, themeMode, setThe
         >
           <ChevronLeft size={24} />
         </button>
-        <h1 className="text-xl font-bold tracking-tight opacity-90">{t('userCenter')}</h1>
+        <h1 className="text-xl font-bold tracking-tight opacity-90">{t('settings')}</h1>
         <div className="w-10"></div> {/* Spacer */}
       </div>
 
-      {/* User Card */}
-      <div className={`w-full max-w-md rounded-3xl p-6 mb-6 shadow-xl border relative overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-white/60'}`}>
-        {!user.isLoggedIn ? (
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 mb-2">
-               <User size={40} />
-            </div>
-            <h2 className="text-xl font-bold">{t('guest')}</h2>
-            <div className="w-full space-y-3">
-              <input 
-                type="text" 
-                placeholder={t('enterUsername')}
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                className={`w-full px-4 py-3 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-center ${isDark ? 'bg-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 text-gray-900 placeholder-gray-400'}`}
-              />
-              <NeumorphicButton onClick={handleLogin} variant="primary" className="w-full !py-3">
-                {t('loginBtn')}
-              </NeumorphicButton>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-4">
-            <div className="relative">
-                <img src={user.avatarUrl} alt="Avatar" className="w-20 h-20 rounded-full border-4 border-indigo-100 shadow-sm" />
-                <div className="absolute bottom-0 right-0 bg-green-500 w-5 h-5 rounded-full border-2 border-white"></div>
-            </div>
-            <div className="flex-1">
-              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{user.name}</h2>
-              <div className="text-xs text-indigo-500 font-medium bg-indigo-500/10 px-2 py-0.5 rounded-full inline-block mt-1">
-                WakeGuard ID: #{Math.floor(Math.random()*10000)}
-              </div>
-            </div>
-            <button onClick={logout} className={`p-2 rounded-full ${isDark ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-400'}`}>
-               <LogOut size={20} />
-            </button>
-          </div>
-        )}
-      </div>
-
       {/* Stats / Streak */}
-      {user.isLoggedIn && (
-         <div className="w-full max-w-md mb-6 animate-slide-up">
-            <div className={`rounded-3xl p-6 flex items-center justify-between border shadow-lg bg-gradient-to-r ${isDark ? 'from-indigo-900 to-purple-900 border-indigo-800' : 'from-indigo-500 to-purple-600 text-white border-transparent'}`}>
-                <div>
-                    <div className={`text-sm font-medium opacity-80 ${isDark ? 'text-indigo-200' : 'text-indigo-100'}`}>{t('streakTitle')}</div>
-                    <div className="text-4xl font-black mt-1 flex items-baseline gap-2">
-                        {streak} <span className="text-lg font-bold opacity-60">{t('streakDays').replace('{n}', '')}</span>
-                    </div>
-                </div>
-                <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                    <Award size={32} className="text-yellow-300" strokeWidth={3} />
+      <div className="w-full max-w-md mb-6 animate-slide-up">
+        <div className={`rounded-3xl p-6 flex items-center justify-between border shadow-lg bg-gradient-to-r ${isDark ? 'from-indigo-900 to-purple-900 border-indigo-800' : 'from-indigo-500 to-purple-600 text-white border-transparent'}`}>
+            <div>
+                <div className={`text-sm font-medium opacity-80 ${isDark ? 'text-indigo-200' : 'text-indigo-100'}`}>{t('streakTitle')}</div>
+                <div className="text-4xl font-black mt-1 flex items-baseline gap-2">
+                    {streak} <span className="text-lg font-bold opacity-60">{t('streakDays').replace('{n}', '')}</span>
                 </div>
             </div>
-            <p className={`text-center text-xs mt-3 font-medium ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                "{t('motivation')}"
-            </p>
-         </div>
-      )}
+            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                <Award size={32} className="text-yellow-300" strokeWidth={3} />
+            </div>
+        </div>
+        <p className={`text-center text-xs mt-3 font-medium ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+            "{t('motivation')}"
+        </p>
+      </div>
 
       {/* Calendar */}
       <div className="w-full max-w-md mb-6 animate-slide-up" style={{ animationDelay: '0.1s' }}>
@@ -106,7 +62,7 @@ export const UserProfile: React.FC<Props> = ({ onBack, isDark, themeMode, setThe
       </div>
 
       {/* Settings Group */}
-      <div className="w-full max-w-md animate-slide-up" style={{ animationDelay: '0.2s' }}>
+      <div className="w-full max-w-md animate-slide-up mb-10" style={{ animationDelay: '0.2s' }}>
           <h3 className={`text-sm font-bold mb-3 px-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t('settings')}</h3>
           <div className={`rounded-3xl shadow-sm border overflow-hidden ${isDark ? 'bg-gray-800 border-gray-700 divide-gray-700' : 'bg-white border-white/60 divide-gray-100'}`}>
               
@@ -135,7 +91,7 @@ export const UserProfile: React.FC<Props> = ({ onBack, isDark, themeMode, setThe
               </div>
 
               {/* Theme Mode */}
-              <div className="p-4 flex justify-between items-center">
+              <div className="p-4 flex justify-between items-center border-b-[1px] border-inherit">
                   <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-50 text-purple-500'}`}>
                           {themeMode === 'auto' ? <Smartphone size={16} /> : (themeMode === 'dark' ? <Moon size={16} /> : <Sun size={16} />)}
@@ -162,6 +118,33 @@ export const UserProfile: React.FC<Props> = ({ onBack, isDark, themeMode, setThe
                         {t('themeAuto')}
                       </button>
                   </div>
+              </div>
+
+               {/* Clear Data */}
+               <div className="p-4 flex justify-between items-center border-b-[1px] border-inherit">
+                  <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-500'}`}>
+                          <RotateCcw size={16} />
+                      </div>
+                      <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('resetData')}</span>
+                  </div>
+                  <button 
+                    onClick={handleClearData}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${isDark ? 'bg-gray-700 text-red-400 hover:bg-gray-600' : 'bg-gray-100 text-red-600 hover:bg-gray-200'}`}
+                  >
+                    {t('clear')}
+                  </button>
+              </div>
+
+              {/* Version */}
+              <div className="p-4 flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
+                          <Info size={16} />
+                      </div>
+                      <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{t('about')}</span>
+                  </div>
+                  <span className="text-xs text-gray-400 font-mono">{t('version')}</span>
               </div>
 
           </div>

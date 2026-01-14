@@ -1,7 +1,9 @@
 
 export enum MissionType {
   MATH = 'MATH',
-  SHAKE = 'SHAKE' // Simulated by rapid clicking on web
+  SHAKE = 'SHAKE', // Simulated by rapid clicking on web
+  MEMORY = 'MEMORY',
+  ORDER = 'ORDER'
 }
 
 export enum Difficulty {
@@ -32,19 +34,13 @@ export enum AppState {
   DASHBOARD = 'DASHBOARD',
   RINGING = 'RINGING',
   MISSION = 'MISSION',
-  PROFILE = 'PROFILE'
+  SETTINGS = 'SETTINGS'
 }
 
 export enum VolumeLevel {
   NORMAL = 'NORMAL', // x1
   LOUD = 'LOUD', // x2
   SUPER_LOUD = 'SUPER_LOUD' // x3
-}
-
-export interface User {
-  name: string;
-  isLoggedIn: boolean;
-  avatarUrl?: string;
 }
 
 export interface WakeUpRecord {

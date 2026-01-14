@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Alarm, MissionType, Difficulty, RepeatMode } from '../types';
 import { NeumorphicButton } from './NeumorphicButton';
-import { Plus, Trash2, Activity, Calendar, Accessibility, User as UserIcon, Flame } from 'lucide-react';
+import { Plus, Trash2, Activity, Calendar, Flame, Briefcase, Heart, Plane, Train, Users, Stethoscope, Tag, UserCheck, GraduationCap, Settings } from 'lucide-react';
 import { useLanguage } from '../i18n';
 import { useUser } from '../UserContext';
 
@@ -10,9 +10,21 @@ interface Props {
   onAddAlarm: (alarm: Alarm) => void;
   onToggleAlarm: (id: string) => void;
   onDeleteAlarm: (id: string) => void;
-  onOpenProfile: () => void;
+  onOpenSettings: () => void;
   isDark: boolean;
 }
+
+const CATEGORIES = [
+  { id: 'work', icon: Briefcase, key: 'label_work' },
+  { id: 'interview', icon: UserCheck, key: 'label_interview' },
+  { id: 'exam', icon: GraduationCap, key: 'label_exam' },
+  { id: 'flight', icon: Plane, key: 'label_flight' },
+  { id: 'train', icon: Train, key: 'label_train' },
+  { id: 'meeting', icon: Users, key: 'label_meeting' },
+  { id: 'doctor', icon: Stethoscope, key: 'label_doctor' },
+  { id: 'date', icon: Heart, key: 'label_date' },
+  { id: 'other', icon: Tag, key: 'label_other' },
+];
 
 const AlarmItem: React.FC<{ 
   alarm: Alarm; 
@@ -51,9 +63,24 @@ const AlarmItem: React.FC<{
   };
 
   const getDayLabel = (d: number) => t(`day_${d}` as any);
+  
+  // Find category icon
+  const getLabelIcon = (labelId: string) => {
+      const cat = CATEGORIES.find(c => c.id === labelId);
+      if (cat) return cat.icon;
+      return Tag;
+  };
+
+  const getLabelTitle = (labelId: string) => {
+      const cat = CATEGORIES.find(c => c.id === labelId);
+      if (cat) return t(cat.key as any);
+      return labelId;
+  };
+  
+  const Icon = getLabelIcon(alarm.label);
 
   return (
-    <div className="relative w-full h-24 mb-4 select-none group overflow-hidden">
+    <div className="relative w-full h-28 mb-4 select-none group overflow-hidden">
         {/* Background Delete Action */}
         <div 
             className="absolute inset-0 bg-red-500 rounded-2xl flex items-center justify-end px-6 cursor-pointer active:bg-red-600 transition-colors"
@@ -64,7 +91,7 @@ const AlarmItem: React.FC<{
 
         {/* Foreground Card */}
         <div 
-            className={`absolute inset-0 rounded-2xl p-5 shadow-soft border flex justify-between items-center z-10 transition-transform duration-200 ease-out touch-pan-y
+            className={`absolute inset-0 rounded-2xl p-4 shadow-soft border flex justify-between items-center z-10 transition-transform duration-200 ease-out touch-pan-y
                 ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'}
             `}
             style={{ transform: `translateX(${offset}px)` }}
@@ -72,9 +99,20 @@ const AlarmItem: React.FC<{
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
         >
-            <div>
-              <div className={`text-3xl font-light tracking-tight font-[Inter] ${isDark ? 'text-white' : 'text-text-main'}`}>{alarm.time}</div>
-              <div className={`flex items-center gap-2 text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-text-sub'}`}>
+            <div className="flex-1">
+              {/* Category Icon and Time Row */}
+              <div className="flex items-center gap-3">
+                 {/* Category Icon (Placed before time) */}
+                 <div className={`p-2 rounded-full ${isDark ? 'bg-indigo-900/30 text-indigo-300' : 'bg-indigo-50 text-indigo-600'}`} title={getLabelTitle(alarm.label)}>
+                    <Icon size={20} strokeWidth={2} />
+                 </div>
+                 {/* Time */}
+                 <div className={`text-4xl font-light tracking-tight font-[Inter] ${isDark ? 'text-white' : 'text-text-main'}`}>
+                    {alarm.time}
+                 </div>
+              </div>
+
+              <div className={`flex items-center gap-2 text-xs mt-2 ${isDark ? 'text-gray-400' : 'text-text-sub'}`}>
                 {alarm.repeatMode === RepeatMode.ONCE && (
                     <span className={`px-2 py-0.5 rounded-md ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-500'}`}>{t('repeatOnce')}</span>
                 )}
@@ -90,14 +128,14 @@ const AlarmItem: React.FC<{
                         ) : (
                              <div className="flex gap-1">
                                 {sortDays(alarm.customDays).map(d => (
-                                    <div key={d} className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-500'}`}>
+                                    <div key={d} className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-500'}`}>
                                         {getDayLabel(d)}
                                     </div>
                                 ))}
                              </div>
                         )}
                         {alarm.skipHolidays && (
-                            <span className="bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-md flex items-center gap-1 text-[10px]">
+                            <span className="bg-orange-500/10 text-orange-500 px-2 py-0.5 rounded-md flex items-center gap-1 text-[9px]">
                                 <Calendar size={10} /> {t('skipHolidaysTag')}
                             </span>
                         )}
@@ -106,21 +144,31 @@ const AlarmItem: React.FC<{
               </div>
             </div>
             
-            {/* Toggle Switch */}
-            <button 
-              onClick={(e) => { e.stopPropagation(); onToggle(alarm.id); }}
-              className={`w-12 h-7 rounded-full relative transition-all duration-300 flex-shrink-0 ${alarm.enabled ? 'bg-primary-brand shadow-glow' : (isDark ? 'bg-gray-600 shadow-inner' : 'bg-gray-200 shadow-inner')}`}
-            >
-              <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ${alarm.enabled ? 'left-6' : 'left-1'}`}></div>
-            </button>
+            <div className="flex items-center gap-4 pl-4">
+                {/* Toggle Switch */}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onToggle(alarm.id); }}
+                  className={`w-12 h-7 rounded-full relative transition-all duration-300 flex-shrink-0 ${alarm.enabled ? 'bg-primary-brand shadow-glow' : (isDark ? 'bg-gray-600 shadow-inner' : 'bg-gray-200 shadow-inner')}`}
+                >
+                  <div className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300 ${alarm.enabled ? 'left-6' : 'left-1'}`}></div>
+                </button>
+
+                 {/* Delete Button */}
+                <button
+                    onClick={(e) => { e.stopPropagation(); onDelete(alarm.id); }}
+                    className={`p-2 rounded-full transition-colors ${isDark ? 'text-gray-600 hover:text-red-400 hover:bg-gray-700' : 'text-gray-300 hover:text-red-500 hover:bg-gray-50'}`}
+                >
+                    <Trash2 size={20} />
+                </button>
+            </div>
         </div>
     </div>
   );
 };
 
-export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, onDeleteAlarm, onOpenProfile, isDark }) => {
+export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, onDeleteAlarm, onOpenSettings, isDark }) => {
   const { t, language } = useLanguage();
-  const { user, streak } = useUser();
+  const { streak } = useUser();
   const [time, setTime] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
   
@@ -129,6 +177,7 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
   const [repeatMode, setRepeatMode] = useState<RepeatMode>(RepeatMode.WORKDAYS);
   const [customDays, setCustomDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [skipHolidays, setSkipHolidays] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState('work');
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -178,13 +227,12 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
   }, [alarms, time, t]);
 
   const handleSaveAlarm = () => {
-    const randomMission = Math.random() > 0.5 ? MissionType.MATH : MissionType.SHAKE;
     const alarm: Alarm = {
       id: Date.now().toString(),
       time: newTime,
       enabled: true,
-      label: '起床',
-      missionType: randomMission,
+      label: selectedLabel,
+      missionType: MissionType.MATH, // Placeholder, missions are now random at runtime
       difficulty: Difficulty.MEDIUM, 
       repeatMode,
       customDays: repeatMode === RepeatMode.CUSTOM ? customDays : [],
@@ -216,7 +264,6 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
   const radius = 120;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (seconds / 60) * circumference;
-  const locale = language === 'zh' ? 'zh-CN' : 'en-US';
 
   return (
     <div className={`min-h-screen p-6 flex flex-col items-center relative overflow-hidden transition-colors duration-500 ${isDark ? 'bg-gray-900 text-white' : 'bg-page-bg text-text-main'}`}>
@@ -229,7 +276,11 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
       <div className="w-full max-w-md flex justify-between items-start mb-8 z-10 pt-2">
         <div className="flex flex-col justify-center">
             <h1 className={`text-2xl font-black tracking-tight flex items-center gap-2 italic ${isDark ? 'text-white' : 'text-text-main'}`}>
-              <Accessibility className="text-primary-brand" size={28} strokeWidth={2.5}/> 
+              <img 
+                src="https://file.302.ai/gpt/imgs/20250222/e59267151859422e8633390022833116.png" 
+                alt="Logo" 
+                className="w-8 h-8 object-contain"
+              /> 
               {t('appName')}
             </h1>
             <p className={`text-[10px] font-medium ml-1 mt-1 tracking-wider pl-9 opacity-80 ${isDark ? 'text-gray-400' : 'text-text-sub'}`}>
@@ -237,25 +288,18 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
             </p>
         </div>
         
-        {/* User Button (Date Removed, Size Increased) */}
+        {/* Settings Button (Was User Button) */}
         <div className="flex flex-col items-end gap-2">
             <button 
-                onClick={onOpenProfile}
-                className={`flex items-center gap-3 pr-4 pl-1.5 py-1.5 rounded-full backdrop-blur-md shadow-sm border transition-colors group ${isDark ? 'bg-gray-800/60 border-gray-700 hover:bg-gray-700' : 'bg-white/60 border-white/50 hover:bg-white/80'}`}
+                onClick={onOpenSettings}
+                className={`flex items-center gap-3 p-2 rounded-full backdrop-blur-md shadow-sm border transition-colors group ${isDark ? 'bg-gray-800/60 border-gray-700 hover:bg-gray-700' : 'bg-white/60 border-white/50 hover:bg-white/80'}`}
             >
-                {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt="User" className="w-8 h-8 rounded-full border border-gray-200" />
-                ) : (
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDark ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-500'}`}>
-                        <UserIcon size={18} />
-                    </div>
-                )}
-                <span className={`text-xs font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{user.name}</span>
+                <Settings size={20} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
             </button>
         </div>
       </div>
 
-      {/* Streak Sentence (Simplified) */}
+      {/* Streak Sentence */}
       {streak > 0 && (
           <div className={`flex items-center justify-center gap-1.5 text-xs font-bold mb-8 z-10 animate-slide-up bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10 ${isDark ? 'text-orange-300' : 'text-orange-600 bg-orange-50/50 border-orange-100'}`}>
                <Flame size={12} className={isDark ? 'text-orange-400' : 'text-orange-500'} fill="currentColor" />
@@ -265,26 +309,11 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
 
       {/* Modern Round Digital Clock */}
       <div className="relative w-64 h-64 flex items-center justify-center mb-12 z-10">
-        {/* Background Circle / Card */}
         <div className={`absolute inset-0 rounded-full shadow-[0_20px_50px_-12px_rgba(0,0,0,0.1)] border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-white/50'}`}></div>
-        
-        {/* Animated Seconds Ring */}
         <div className="absolute inset-0 rounded-full -rotate-90">
              <svg className="w-full h-full p-2" viewBox="0 0 250 250">
-                 <circle 
-                    cx="125" cy="125" r="120" 
-                    fill="none" 
-                    stroke={isDark ? '#374151' : '#F3F4F6'} 
-                    strokeWidth="4" 
-                 />
-                 <circle 
-                    cx="125" cy="125" r="120" 
-                    fill="none" 
-                    stroke="url(#gradient)" 
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    style={{ strokeDasharray: circumference, strokeDashoffset, transition: 'stroke-dashoffset 0.5s linear' }}
-                 />
+                 <circle cx="125" cy="125" r="120" fill="none" stroke={isDark ? '#374151' : '#F3F4F6'} strokeWidth="4" />
+                 <circle cx="125" cy="125" r="120" fill="none" stroke="url(#gradient)" strokeWidth="4" strokeLinecap="round" style={{ strokeDasharray: circumference, strokeDashoffset, transition: 'stroke-dashoffset 0.5s linear' }} />
                  <defs>
                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
                      <stop offset="0%" stopColor="#6366F1" />
@@ -293,24 +322,21 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
                  </defs>
              </svg>
         </div>
-
-        {/* Content Container */}
-        <div className="flex flex-col items-center justify-center relative z-10">
-            {/* Time */}
-            <div className={`text-6xl font-bold text-transparent bg-clip-text tracking-tighter font-[Inter] ${isDark ? 'bg-gradient-to-br from-white to-gray-400' : 'bg-gradient-to-br from-gray-800 to-gray-600'}`}>
+        
+        {/* Time - Absolutely Centered */}
+        <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+            <div className={`text-6xl font-bold text-transparent bg-clip-text tracking-tighter leading-none font-[Inter] ${isDark ? 'bg-gradient-to-br from-white to-gray-400' : 'bg-gradient-to-br from-gray-800 to-gray-600'}`}>
                 {time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
             </div>
-            
-            {/* Countdown Subtext - Dynamic */}
-            {countdownText ? (
-                <div className={`mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full animate-slide-up ${isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
+        </div>
+
+        {/* Countdown / Info - Positioned below center without affecting Time's center */}
+        <div className="absolute inset-x-0 bottom-14 flex justify-center z-10 pointer-events-none">
+            {countdownText && (
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full animate-slide-up ${isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
                     <Activity size={12} className="text-primary-brand" />
-                    <span className="text-xs font-semibold text-primary-brand">
-                        {countdownText}
-                    </span>
+                    <span className="text-xs font-semibold text-primary-brand">{countdownText}</span>
                 </div>
-            ) : (
-                <div className="mt-2 flex items-center gap-1.5 px-3 py-1 h-6"></div>
             )}
         </div>
       </div>
@@ -324,7 +350,7 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
             alarm={alarm} 
             onToggle={onToggleAlarm} 
             onDelete={onDeleteAlarm} 
-            t={t}
+            t={t} 
             isDark={isDark}
           />
         ))}
@@ -360,6 +386,33 @@ export const Dashboard: React.FC<Props> = ({ alarms, onAddAlarm, onToggleAlarm, 
                     className={`w-full p-4 rounded-xl border text-5xl text-center outline-none focus:border-primary-brand focus:ring-2 focus:ring-primary-brand/20 font-mono ${isDark ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-50 border-gray-200 text-text-main'}`}
                 />
               </div>
+            </div>
+
+            {/* Label Selection - Grid Layout */}
+            <div className="mb-6">
+                <label className={`block text-sm font-semibold mb-3 ${isDark ? 'text-gray-400' : 'text-text-sub'}`}>{t('labelLabel')}</label>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-y-4 gap-x-2">
+                    {CATEGORIES.map(cat => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setSelectedLabel(cat.id)}
+                            className="group flex flex-col items-center gap-2 outline-none"
+                        >
+                            <div className={`
+                                w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 border-2
+                                ${selectedLabel === cat.id 
+                                    ? 'bg-gradient-to-tr from-indigo-500 to-purple-600 text-white shadow-lg scale-110 border-transparent' 
+                                    : (isDark ? 'bg-gray-700 border-gray-600 text-gray-400 group-hover:bg-gray-600' : 'bg-gray-50 border-gray-200 text-gray-400 group-hover:bg-gray-100')
+                                }
+                            `}>
+                                <cat.icon size={24} strokeWidth={selectedLabel === cat.id ? 2 : 1.5} />
+                            </div>
+                            <span className={`text-[10px] font-medium transition-colors ${selectedLabel === cat.id ? 'text-primary-brand font-bold' : (isDark ? 'text-gray-400' : 'text-gray-500')}`}>
+                                {t(cat.key as any)}
+                            </span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Repeat Mode */}

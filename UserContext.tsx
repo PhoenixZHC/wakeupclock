@@ -1,34 +1,28 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { User, WakeUpRecord } from './types';
+import { WakeUpRecord } from './types';
 
 interface UserContextType {
-  user: User;
   history: WakeUpRecord[];
-  login: (name: string) => void;
-  logout: () => void;
   recordWakeUp: () => void;
   streak: number;
+  clearData: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-const STORAGE_KEY_USER = 'wakeguard_user';
 const STORAGE_KEY_HISTORY = 'wakeguard_history';
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User>({ name: 'Guest', isLoggedIn: false });
   const [history, setHistory] = useState<WakeUpRecord[]>([]);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem(STORAGE_KEY_USER);
     const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
-    if (savedUser) setUser(JSON.parse(savedUser));
     if (savedHistory) setHistory(JSON.parse(savedHistory));
     else {
         // Seed some fake history for demo purposes if empty
         const fakeHistory = [];
         const today = new Date();
-        for(let i=1; i<=4; i++) {
+        for(let i=1; i<=3; i++) {
             const d = new Date(today);
             d.setDate(d.getDate() - i);
             fakeHistory.push({
@@ -39,18 +33,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setHistory(fakeHistory);
     }
   }, []);
-
-  const login = (name: string) => {
-    const newUser = { name, isLoggedIn: true, avatarUrl: `https://ui-avatars.com/api/?name=${name}&background=6366F1&color=fff` };
-    setUser(newUser);
-    localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(newUser));
-  };
-
-  const logout = () => {
-    const guestUser = { name: 'Guest', isLoggedIn: false };
-    setUser(guestUser);
-    localStorage.removeItem(STORAGE_KEY_USER);
-  };
 
   const recordWakeUp = () => {
     const now = new Date();
@@ -63,6 +45,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newHistory = [newRecord, ...history];
     setHistory(newHistory);
     localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(newHistory));
+  };
+
+  const clearData = () => {
+    setHistory([]);
+    localStorage.removeItem(STORAGE_KEY_HISTORY);
   };
 
   // Calculate streak
@@ -94,7 +81,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, [history]);
 
   return (
-    <UserContext.Provider value={{ user, history, login, logout, recordWakeUp, streak }}>
+    <UserContext.Provider value={{ history, recordWakeUp, streak, clearData }}>
       {children}
     </UserContext.Provider>
   );

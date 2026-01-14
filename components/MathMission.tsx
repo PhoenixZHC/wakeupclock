@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Difficulty } from '../types';
 import { MISSION_CONFIG } from '../constants';
-import { Brain } from 'lucide-react';
+import { Brain, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../i18n';
 
 interface Props {
@@ -49,6 +49,12 @@ export const MathMission: React.FC<Props> = ({ difficulty, onComplete }) => {
 
   const handleClear = () => setCurrentInput('');
   
+  const handleSkip = () => {
+      setProblem(generateProblem());
+      setCurrentInput('');
+      setError(false);
+  };
+  
   const handleSubmit = () => {
     const val = parseInt(currentInput);
     if (val === problem.answer) {
@@ -87,7 +93,16 @@ export const MathMission: React.FC<Props> = ({ difficulty, onComplete }) => {
         bg-gray-800/80 backdrop-blur rounded-2xl p-8 mb-8 text-center border-2 transition-colors duration-200 shadow-xl
         ${error ? 'border-red-500 bg-red-900/20' : 'border-gray-700'}
       `}>
-        <div className="text-4xl font-bold text-white mb-6 tracking-wide font-mono">{problem.text}</div>
+        <div className="text-4xl font-bold text-white mb-2 tracking-wide font-mono">{problem.text}</div>
+        
+        {/* Skip Button */}
+        <button 
+            onClick={handleSkip}
+            className="mb-6 text-xs font-medium text-gray-400 hover:text-indigo-300 transition-colors flex items-center justify-center gap-1 mx-auto active:scale-95"
+        >
+            <RefreshCw size={12} /> {t('changeQuestion')}
+        </button>
+
         <div className="h-16 text-4xl font-mono text-purple-400 border-b-2 border-gray-600 flex items-center justify-center">
           {currentInput}
           <span className="animate-pulse w-1 h-8 bg-purple-400 ml-1"></span>

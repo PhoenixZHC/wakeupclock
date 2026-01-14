@@ -1,0 +1,8 @@
+{
+  "name": "醒了么",
+  "description": "一款针对起床困难户的闹钟应用，具备数学解题和音量递增功能。",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

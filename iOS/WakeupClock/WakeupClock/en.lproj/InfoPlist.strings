@@ -1,0 +1,8 @@
+/* 
+   InfoPlist.strings
+   English localization file
+   Used to set app display name
+*/
+
+/* App Display Name */
+"CFBundleDisplayName" = "Wakeup Clock";

@@ -1,0 +1,8 @@
+/* 
+   InfoPlist.strings
+   中文（简体）本地化文件
+   用于设置应用显示名称
+*/
+
+/* 应用显示名称 */
+"CFBundleDisplayName" = "起了么";

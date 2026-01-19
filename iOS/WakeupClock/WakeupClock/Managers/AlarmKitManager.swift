@@ -149,7 +149,10 @@ class AlarmKitManager {
             _ = try await alarmManager.schedule(id: reminderUUID, configuration: config)
             
             #if DEBUG
-            print("✅ 防重新入睡提醒 \(index)/\(count) 已调度: \(triggerTime)")
+            let formatter = DateFormatter()
+            formatter.dateFormat = "HH:mm:ss"
+            formatter.timeZone = TimeZone.current
+            print("✅ 防重新入睡提醒 \(index)/\(count) 已调度: \(formatter.string(from: triggerTime))")
             #endif
         }
     }

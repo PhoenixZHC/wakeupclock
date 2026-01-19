@@ -64,8 +64,8 @@ final class AppSettings {
         backupNotificationInterval: Int = 60,
         backupNotificationCount: Int = 5,
         enableAntiSnooze: Bool = true,
-        antiSnoozeInterval: Int = 2,
-        antiSnoozeCount: Int = 3
+        antiSnoozeInterval: Int = 3,
+        antiSnoozeCount: Int = 2
     ) {
         self.id = id
         self.language = language

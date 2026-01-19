@@ -50,6 +50,9 @@ struct WakeupClockApp: App {
                 _ = await AlarmKitManager.shared.requestAuthorization()
             }
         }
+        
+        // 预加载节假日数据
+        HolidayChecker.preloadHolidays()
     }
     
     /// 初始化应用设置（确保设置对象存在）

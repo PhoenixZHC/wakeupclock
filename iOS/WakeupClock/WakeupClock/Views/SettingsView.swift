@@ -340,17 +340,15 @@ struct AntiSnoozeSettingsView: View {
         
         if settings.enableAntiSnooze {
             Picker(LocalizedString("antiSnoozeInterval"), selection: $settings.antiSnoozeInterval) {
-                Text("1 \(LocalizedString("minutes"))").tag(1)
-                Text("2 \(LocalizedString("minutes"))").tag(2)
                 Text("3 \(LocalizedString("minutes"))").tag(3)
                 Text("5 \(LocalizedString("minutes"))").tag(5)
+                Text("10 \(LocalizedString("minutes"))").tag(10)
             }
             
             Picker(LocalizedString("antiSnoozeCount"), selection: $settings.antiSnoozeCount) {
                 Text("1 \(LocalizedString("times"))").tag(1)
                 Text("2 \(LocalizedString("times"))").tag(2)
                 Text("3 \(LocalizedString("times"))").tag(3)
-                Text("4 \(LocalizedString("times"))").tag(4)
             }
         }
     }

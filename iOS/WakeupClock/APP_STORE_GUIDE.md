@@ -134,8 +134,8 @@
 
 【防赖床模式】
 完成任务后定期确认是否清醒，防止重新入睡：
-• 可设置提醒间隔：1/2/3/5 分钟
-• 可设置提醒次数：1-4 次
+• 可设置提醒间隔：3/5/10 分钟
+• 可设置提醒次数：1-3 次
 • 每次提醒都是系统级闹钟
 
 【智能闹钟管理】
@@ -181,8 +181,8 @@ Must complete missions to stop alarm, ensuring you're truly awake:
 
 【Anti-Snooze Mode】
 Periodic confirmation after completing tasks to prevent falling back asleep:
-• Configurable reminder interval: 1/2/3/5 minutes
-• Configurable reminder count: 1-4 times
+• Configurable reminder interval: 3/5/10 minutes
+• Configurable reminder count: 1-3 times
 • Each reminder is a system-level alarm
 
 【Smart Alarm Management】

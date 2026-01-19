@@ -11,6 +11,7 @@ import Combine
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject var alarmManager: AlarmManager
     @EnvironmentObject var themeManager: ThemeManager
     @Query private var alarms: [AlarmModel]
@@ -52,6 +53,14 @@ struct ContentView: View {
         .onAppear {
             setupManagers()
             observeAlarmKitIntents()
+            // 检查是否有待处理的闹钟（从锁屏状态唤醒时）
+            checkPendingAlarm()
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            // 当应用从后台进入前台时，检查待处理的闹钟
+            if newPhase == .active && oldPhase != .active {
+                checkPendingAlarm()
+            }
         }
     }
     
@@ -66,13 +75,28 @@ struct ContentView: View {
     private func observeAlarmKitIntents() {
         // 监听 AlarmKit 解锁意图触发的闹钟
         NotificationCenter.default.publisher(for: .alarmTriggeredFromAlarmKit)
-            .sink { notification in
-                if let alarmId = notification.userInfo?["alarmId"] as? String,
-                   let alarm = alarms.first(where: { $0.id == alarmId }) {
+            .receive(on: DispatchQueue.main)
+            .sink { [self] notification in
+                guard let alarmId = notification.userInfo?["alarmId"] as? String else { return }
+                
+                // 如果已经在闹钟界面，忽略
+                guard currentView != .alarmLockdown else { return }
+                
+                // 尝试查找闹钟
+                if let alarm = alarms.first(where: { $0.id == alarmId }) {
+                    #if DEBUG
+                    print("🔔 从通知触发闹钟: \(alarm.label) at \(alarm.time)")
+                    #endif
                     // 播放闹钟声音
                     SoundManager.shared.playAlarmSound(level: .normal)
                     activeAlarm = alarm
                     currentView = .alarmLockdown
+                } else {
+                    #if DEBUG
+                    print("⚠️ 未找到闹钟 ID: \(alarmId)，将在稍后重试")
+                    #endif
+                    // 闹钟数据可能还没加载，保存到待处理队列
+                    PendingAlarmManager.shared.setPendingAlarm(id: alarmId)
                 }
             }
             .store(in: &cancellables)
@@ -104,6 +128,39 @@ struct ContentView: View {
             #if DEBUG
             print("❌ 取消防重新入睡提醒失败: \(error)")
             #endif
+        }
+    }
+    
+    /// 检查是否有待处理的闹钟（用于从锁屏状态唤醒应用时）
+    private func checkPendingAlarm() {
+        // 如果已经在闹钟界面，不重复检查
+        guard currentView != .alarmLockdown else { return }
+        
+        // 延迟执行，确保 SwiftData 已加载完成
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // 再次检查状态
+            guard currentView != .alarmLockdown else { return }
+            
+            // 检查是否有待处理的闹钟（不消费，先检查）
+            guard PendingAlarmManager.shared.hasPendingAlarm() else { return }
+            
+            // 消费待处理的闹钟
+            if let alarmId = PendingAlarmManager.shared.consumePendingAlarm() {
+                if let alarm = alarms.first(where: { $0.id == alarmId }) {
+                    #if DEBUG
+                    print("🔔 从待处理队列恢复闹钟: \(alarm.label) at \(alarm.time)")
+                    #endif
+                    
+                    // 触发闹钟界面
+                    SoundManager.shared.playAlarmSound(level: .normal)
+                    activeAlarm = alarm
+                    currentView = .alarmLockdown
+                } else {
+                    #if DEBUG
+                    print("⚠️ 待处理闹钟未找到: \(alarmId)")
+                    #endif
+                }
+            }
         }
     }
     

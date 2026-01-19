@@ -306,9 +306,24 @@ struct AlarmLockdownView: View {
         soundManager.stopAlarmSound()
     }
     
+    /// 上次选择的任务类型（用于避免连续重复）
+    private static var lastMission: MissionType?
+    
     private func selectRandomMission() {
-        let missions: [MissionType] = [.math, .memory, .order, .shake]
-        activeMission = missions.randomElement() ?? .math
+        var missions: [MissionType] = [.math, .memory, .order, .shake, .typing]
+        
+        // 如果有上次的任务，从列表中移除以避免连续重复
+        if let last = Self.lastMission, missions.count > 1 {
+            missions.removeAll { $0 == last }
+        }
+        
+        let selected = missions.randomElement() ?? .math
+        Self.lastMission = selected
+        activeMission = selected
+        
+        #if DEBUG
+        print("🎯 随机选择任务: \(selected.rawValue)")
+        #endif
     }
     
     // MARK: - 视频相关

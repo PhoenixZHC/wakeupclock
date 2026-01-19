@@ -85,6 +85,12 @@ struct AddAlarmView: View {
                                         .foregroundColor(.secondary)
                                 }
                             }
+                            .onChange(of: skipHolidays) { oldValue, newValue in
+                                // 当用户开启节假日跳过功能时，强制获取最新节假日数据
+                                if newValue && !oldValue {
+                                    HolidayChecker.preloadHolidays(forceRefresh: true)
+                                }
+                            }
                         }
                         .padding(.vertical, 8)
                     }
@@ -149,25 +155,29 @@ struct AddAlarmView: View {
     }
     
     private func dayButton(day: Int) -> some View {
-        Button(action: {
-            if customDays.contains(day) {
-                customDays.remove(day)
-            } else {
-                customDays.insert(day)
+        let isSelected = customDays.contains(day)
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                if isSelected {
+                    customDays.remove(day)
+                } else {
+                    customDays.insert(day)
+                }
             }
-        }) {
+        } label: {
             Text(LocalizedString("day_\(day)"))
                 .font(.system(size: 14, weight: .bold))
-                .foregroundColor(customDays.contains(day) ? .white : .primary)
+                .foregroundColor(isSelected ? .white : .primary)
                 .frame(width: 40, height: 40)
                 .background(
                     Circle()
-                        .fill(customDays.contains(day) ?
+                        .fill(isSelected ?
                               Color(hex: "6366F1") :
                               Color.gray.opacity(0.1)
                         )
                 )
         }
+        .buttonStyle(.plain)
     }
     
     private func saveAlarm() {

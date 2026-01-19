@@ -154,8 +154,8 @@ final class AlarmModel {
             }
         }
         
-        // 检查是否跳过节假日
-        if skipHolidays && HolidayChecker.isHoliday(date) {
+        // 检查是否跳过节假日（使用智能判断，考虑调休上班日）
+        if skipHolidays && HolidayChecker.shouldSkipAlarm(date) {
             return false
         }
         

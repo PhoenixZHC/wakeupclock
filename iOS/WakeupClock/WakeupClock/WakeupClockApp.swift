@@ -2,7 +2,7 @@
 //  WakeupClockApp.swift
 //  WakeupClock
 //
-//  Created by AI Assistant
+//  Created by Phoenix
 //  Copyright © 2024 WakeupClock. All rights reserved.
 //
 

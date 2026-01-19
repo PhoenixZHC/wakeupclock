@@ -42,8 +42,8 @@
 
 | 页面 | URL |
 |------|-----|
-| **隐私政策** | `https://你的用户名.github.io/wakeupclock/privacy.html` |
-| **技术支持** | `https://你的用户名.github.io/wakeupclock/support.html` |
+| **隐私政策** | `https://PhoenixZHC.github.io/wakeupclock/privacy.html` |
+| **技术支持** | `https://PhoenixZHC.github.io/wakeupclock/support.html` |
 
 ---
 
@@ -315,8 +315,8 @@ Make waking up no longer difficult, start today, develop the good habit of early
 
 | 项目 | URL |
 |------|-----|
-| **隐私政策 URL** | `https://你的用户名.github.io/wakeupclock/privacy.html` |
-| **技术支持 URL** | `https://你的用户名.github.io/wakeupclock/support.html` |
+| **隐私政策 URL** | `https://PhoenixZHC.github.io/wakeupclock/privacy.html` |
+| **技术支持 URL** | `https://PhoenixZHC.github.io/wakeupclock/support.html` |
 
 ---
 

@@ -168,4 +168,15 @@ iOS/WakeupClock/WakeupClock/
 
 ## 许可证
 
-版权所有 © 2024-2026 WakeupClock
+[![CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
+
+本项目采用 [知识共享 署名-非商业性使用-禁止演绎 4.0 国际许可协议](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh) 进行许可。
+
+- ✅ 可以查看和学习代码
+- ✅ 可以分享（需注明出处）
+- ❌ 不可用于商业目的
+- ❌ 不可修改后发布
+
+如需商业授权，请联系：2081577684@qq.com
+
+版权所有 © 2024-2026 起了么 (Wakeup Clock)

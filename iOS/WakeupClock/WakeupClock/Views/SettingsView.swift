@@ -73,7 +73,7 @@ struct SettingsView: View {
                 }
                 
                 // 数据管理
-                Section(header: Text("数据管理")) {
+                Section(header: Text(LocalizedString("dataManagement"))) {
                     Button(action: {
                         showResetAlert = true
                     }) {
@@ -105,9 +105,9 @@ struct SettingsView: View {
                 // 应用信息
                 Section(header: Text(LocalizedString("about"))) {
                     HStack {
-                        Text("版本")
+                        Text(LocalizedString("version"))
                         Spacer()
-                        Text("1.0.0")
+                        Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")
                             .foregroundColor(.secondary)
                     }
                 }
@@ -121,9 +121,9 @@ struct SettingsView: View {
                     }
                 }
             }
-            .alert("确认重置", isPresented: $showResetAlert) {
+            .alert(LocalizedString("confirmReset"), isPresented: $showResetAlert) {
                 Button(LocalizedString("cancel"), role: .cancel) {}
-                Button("重置", role: .destructive) {
+                Button(LocalizedString("reset"), role: .destructive) {
                     userStatsManager.clearData()
                 }
             } message: {

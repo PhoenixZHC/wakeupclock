@@ -39,6 +39,10 @@ class Translations {
     private let translations: [String: [String: String]] = [
         "zh": [
             "appName": "起了么",
+            "dataManagement": "数据管理",
+            "version": "版本",
+            "confirmReset": "确认重置",
+            "reset": "重置",
             "slogan": "专治起床困难户",
             "myAlarms": "我的闹钟",
             "noAlarms": "暂无闹钟，快去添加一个吧！",
@@ -70,7 +74,7 @@ class Translations {
             "noiseBombing": "噪音轰炸倒计时！",
             "startMission": "开始解除任务",
             "completeMission": "完成任务以关闭闹钟",
-            "systemLocked": "醒了么 WakeGuard 系统锁定中",
+            "systemLocked": "起了么 WakeGuard 系统锁定中",
             "mathMission": "任务: 数学解题",
             "crazyClick": "疯狂点击!",
             "clickInstruction": "连续点击按钮 20 次即可关闭闹钟",
@@ -186,6 +190,10 @@ class Translations {
         ],
         "en": [
             "appName": "Wakeup Clock",
+            "dataManagement": "Data Management",
+            "version": "Version",
+            "confirmReset": "Confirm Reset",
+            "reset": "Reset",
             "slogan": "Cure for difficulty waking up",
             "myAlarms": "My Alarms",
             "noAlarms": "No alarms yet, add one!",

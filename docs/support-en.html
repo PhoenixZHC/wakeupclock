@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support - Wakeup Clock</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.8; color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .header { text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 2px solid #f0f0f0; }
+        .logo { font-size: 48px; margin-bottom: 10px; }
+        h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
+        .app-name { color: #667eea; font-size: 18px; font-weight: 500; }
+        .tagline { color: #999; font-size: 14px; margin-top: 10px; }
+        h2 { color: #667eea; font-size: 20px; margin: 30px 0 15px 0; padding-left: 15px; border-left: 4px solid #667eea; }
+        p { margin-bottom: 15px; }
+        ul { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 10px; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 25px 0; }
+        .feature-card { background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%); border-radius: 12px; padding: 15px; text-align: center; }
+        .feature-card .icon { font-size: 28px; margin-bottom: 8px; }
+        .feature-card h4 { color: #667eea; margin-bottom: 5px; font-size: 13px; }
+        .feature-card p { font-size: 11px; color: #666; margin-bottom: 0; }
+        .faq-item { background: #f8f9fa; border-radius: 12px; padding: 18px; margin: 12px 0; }
+        .faq-item h4 { color: #667eea; margin-bottom: 8px; font-size: 14px; }
+        .faq-item p { margin-bottom: 0; font-size: 13px; color: #555; }
+        .contact-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 25px; margin-top: 30px; text-align: center; color: white; }
+        .contact-box h3 { color: white; margin-bottom: 12px; }
+        .contact-box a { color: white; text-decoration: none; font-weight: 600; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 20px; display: inline-block; margin-top: 8px; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #f0f0f0; color: #999; font-size: 14px; }
+        .footer a { color: #667eea; text-decoration: none; margin: 0 10px; }
+        .lang-switch { text-align: right; margin-bottom: 20px; }
+        .lang-switch a { color: #667eea; text-decoration: none; padding: 5px 15px; border: 1px solid #667eea; border-radius: 20px; font-size: 14px; }
+        .lang-switch a:hover { background: #667eea; color: white; }
+        .requirement-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 15px; margin: 20px 0; }
+        .requirement-box h4 { color: #856404; margin-bottom: 8px; font-size: 14px; }
+        .requirement-box p { color: #856404; margin-bottom: 0; font-size: 13px; }
+        @media (max-width: 600px) { .container { padding: 25px; } h1 { font-size: 24px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="lang-switch"><a href="support.html">中文</a></div>
+        <div class="header">
+            <div class="logo">⏰</div>
+            <h1>Support</h1>
+            <div class="app-name">Wakeup Clock - Smart Alarm App</div>
+            <div class="tagline">Cure for difficulty waking up</div>
+        </div>
+        <h2>Features</h2>
+        <div class="feature-grid">
+            <div class="feature-card"><div class="icon">🔔</div><h4>System Alarms</h4><p>Override Silent & DND</p></div>
+            <div class="feature-card"><div class="icon">🧩</div><h4>Mission Unlock</h4><p>5 mission types</p></div>
+            <div class="feature-card"><div class="icon">🛡️</div><h4>Anti-Snooze</h4><p>Periodic checks</p></div>
+            <div class="feature-card"><div class="icon">📅</div><h4>Check-in</h4><p>Track wake-up days</p></div>
+            <div class="feature-card"><div class="icon">🎬</div><h4>Scene Videos</h4><p>8 alarm labels</p></div>
+            <div class="feature-card"><div class="icon">🌙</div><h4>Themes</h4><p>Dark/Light auto</p></div>
+        </div>
+        <div class="requirement-box">
+            <h4>⚠️ System Requirements</h4>
+            <p>This app requires <strong>iOS 26.0</strong> or later, using AlarmKit framework for system-level alarms.</p>
+        </div>
+        <h2>FAQ</h2>
+        <div class="faq-item"><h4>Q: What if the alarm doesn't ring?</h4><p>Please ensure alarm permission is granted. Go to Settings → Wakeup Clock → Alarms.</p></div>
+        <div class="faq-item"><h4>Q: How do I turn off the alarm?</h4><p>Tap "Unlock Alarm" button, then complete a random mission (like math problems) to stop it.</p></div>
+        <div class="faq-item"><h4>Q: What is Anti-Snooze Mode?</h4><p>After completing tasks, the system sends periodic reminders to confirm you're awake.</p></div>
+        <div class="faq-item"><h4>Q: Will the alarm override Silent mode?</h4><p>Yes! Using AlarmKit, alarms automatically override Silent, DND, and Focus modes.</p></div>
+        <div class="faq-item"><h4>Q: How do I skip holidays?</h4><p>Enable "Skip Public Holidays" option when adding an alarm.</p></div>
+        <h2>Tips</h2>
+        <ul>
+            <li><strong>Charge overnight</strong>: Low battery may cause automatic shutdown</li>
+            <li><strong>Choose the right mission</strong>: Math missions are best for waking up</li>
+            <li><strong>Use Anti-Snooze Mode</strong>: Recommended for users who tend to fall back asleep</li>
+        </ul>
+        <div class="contact-box">
+            <h3>📧 Contact Us</h3>
+            <p>If you have any issues or suggestions:</p>
+            <a href="mailto:2081577684@qq.com">2081577684@qq.com</a>
+        </div>
+        <div class="footer">
+            <p><a href="privacy-en.html">Privacy Policy</a> | <a href="support-en.html">Support</a></p>
+            <p style="margin-top: 15px;">© 2024-2026 Wakeup Clock. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

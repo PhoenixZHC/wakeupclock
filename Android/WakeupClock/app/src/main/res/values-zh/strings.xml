@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">起了么</string>
+    <string name="slogan">每天准时起床，从此告别赖床</string>
+    
+    <!-- Dashboard -->
+    <string name="my_alarms">我的闹钟</string>
+    <string name="no_alarms">还没有闹钟\n点击 + 添加一个</string>
+    <string name="streak_sentence">已连续 %d 天准时起床！</string>
+    <string name="encouragement_message">今天开始你的连续记录吧！</string>
+    <string name="countdown_format">%s 后响铃</string>
+    
+    <!-- Add Alarm -->
+    <string name="new_alarm">新建闹钟</string>
+    <string name="time_label">时间</string>
+    <string name="label_label">标签</string>
+    <string name="repeat_label">重复</string>
+    <string name="repeat_once">仅一次</string>
+    <string name="repeat_workdays">工作日</string>
+    <string name="repeat_custom">自定义</string>
+    <string name="select_days_label">选择日期</string>
+    <string name="skip_holidays_label">跳过节假日</string>
+    <string name="skip_holidays_desc">自动跳过国家法定节假日</string>
+    <string name="save_alarm">保存</string>
+    <string name="cancel">取消</string>
+    <string name="delete">删除</string>
+    <string name="confirm_delete">确认删除</string>
+    <string name="delete_alarm_confirm">确定要删除这个闹钟吗？</string>
+    <string name="everyday">每天</string>
+    <string name="skip_holidays_tag">节假日不响</string>
+    
+    <!-- Labels -->
+    <string name="label_work">上班</string>
+    <string name="label_date">约会</string>
+    <string name="label_flight">赶飞机</string>
+    <string name="label_train">赶火车</string>
+    <string name="label_meeting">会议</string>
+    <string name="label_doctor">看病</string>
+    <string name="label_interview">面试</string>
+    <string name="label_exam">考试</string>
+    <string name="label_other">其他</string>
+    
+    <!-- Days -->
+    <string name="day_0">日</string>
+    <string name="day_1">一</string>
+    <string name="day_2">二</string>
+    <string name="day_3">三</string>
+    <string name="day_4">四</string>
+    <string name="day_5">五</string>
+    <string name="day_6">六</string>
+    
+    <!-- Alarm Messages (与iOS一致) -->
+    <string name="alarm_msg_work">起床搬砖啦！迟到要扣钱的！</string>
+    <string name="alarm_msg_date">约会别迟到，印象分很重要！</string>
+    <string name="alarm_msg_flight">赶飞机啦！误机就麻烦了！</string>
+    <string name="alarm_msg_train">火车不等人，快点起床！</string>
+    <string name="alarm_msg_meeting">会议要开始了，精神点！</string>
+    <string name="alarm_msg_doctor">预约了医生，健康第一！</string>
+    <string name="alarm_msg_interview">面试加油！穿得精神点！</string>
+    <string name="alarm_msg_exam">考试顺利！起来复习了！</string>
+    <string name="alarm_msg_other">新的一天，该起床了！</string>
+    
+    <!-- Alarm Lockdown -->
+    <string name="start_mission">开始任务</string>
+    <string name="complete_mission">完成任务才能关闭闹钟</string>
+    <string name="get_up_now">快起床！</string>
+    <string name="emergency">紧急警报！</string>
+    <string name="early_bird">早起的鸟儿有虫吃</string>
+    <string name="noise_bombing">最大音量轰炸中！</string>
+    
+    <!-- Missions -->
+    <string name="mission_math">数学挑战</string>
+    <string name="mission_memory">记忆游戏</string>
+    <string name="mission_order">数字排序</string>
+    <string name="mission_shake">点击挑战</string>
+    <string name="mission_typing">打字测试</string>
+    <string name="mission_complete">任务完成！</string>
+    <string name="mission_failed">再试一次</string>
+    <string name="tap_count">再点击 %d 次</string>
+    <string name="type_this">请输入：</string>
+    <string name="remember_pattern">记住发光的方块</string>
+    <string name="tap_remembered">点击刚才发光的方块</string>
+    <string name="ready">准备好了</string>
+    <string name="tap_in_order">按顺序点击数字</string>
+    
+    <!-- Settings -->
+    <string name="settings">设置</string>
+    <string name="theme_mode">显示模式</string>
+    <string name="theme_auto">自动</string>
+    <string name="theme_light">日间</string>
+    <string name="theme_dark">夜间</string>
+    <string name="language">语言</string>
+    <string name="anti_snooze_title">防赖床模式</string>
+    <string name="anti_snooze_desc">完成任务后定期发送提醒，确保你真的醒了</string>
+    <string name="enable_anti_snooze">启用防赖床</string>
+    <string name="anti_snooze_interval">提醒间隔</string>
+    <string name="anti_snooze_count">提醒次数</string>
+    <string name="anti_snooze_reminder1">还醒着吗？</string>
+    <string name="anti_snooze_reminder">确认清醒</string>
+    <string name="anti_snooze_reminder_last">最后确认</string>
+    <string name="anti_snooze_subtitle">点击下方按钮确认你已经完全清醒</string>
+    <string name="anti_snooze_timeout_warning">如果不点击确认，闹钟将重新响起！</string>
+    <string name="anti_snooze_countdown">剩余 %d 秒</string>
+    <string name="confirm_awake">我醒了！</string>
+    <string name="anti_snooze_hint">第 %1$d 次提醒，共 %2$d 次</string>
+    <string name="minutes">分钟</string>
+    <string name="times">次</string>
+    <string name="data_management">数据管理</string>
+    <string name="reset_data">重置所有数据</string>
+    <string name="confirm_reset">确认重置</string>
+    <string name="reset_confirm">这将删除所有闹钟和记录，此操作无法撤销。</string>
+    <string name="reset">重置</string>
+    <string name="help">帮助</string>
+    <string name="usage_guide">使用指南</string>
+    <string name="about">关于</string>
+    <string name="version">版本</string>
+    <string name="back">返回</string>
+    <string name="done">完成</string>
+    
+    <!-- Usage Guide -->
+    <string name="guide_subtitle">确保闹钟可靠运行的小技巧</string>
+    <string name="recommended_practices">推荐设置</string>
+    <string name="not_recommended_practices">注意事项</string>
+    <string name="guide_tip1_title">关闭电池优化</string>
+    <string name="guide_tip1_desc">设置 > 应用 > 起了么 > 电池 > 不受限制</string>
+    <string name="guide_tip2_title">允许自启动</string>
+    <string name="guide_tip2_desc">在手机设置中允许本应用自启动</string>
+    <string name="guide_tip3_title">保持通知开启</string>
+    <string name="guide_tip3_desc">确保通知权限已开启以接收闹钟提醒</string>
+    <string name="guide_tip4_title">不要强制停止</string>
+    <string name="guide_tip4_desc">避免从最近任务中强制停止应用</string>
+    <string name="guide_tip5_title">电量提醒</string>
+    <string name="guide_tip5_desc">睡前给手机充电，避免电量耗尽关机</string>
+    <string name="guide_tip6_title">测试闹钟</string>
+    <string name="guide_tip6_desc">设置一个测试闹钟确保一切正常</string>
+    <string name="system_limitations">系统限制说明</string>
+    <string name="system_limitations_desc">由于安卓系统的电源管理机制，部分手机厂商可能会限制后台应用。请按照上述提示设置以获得最佳体验。</string>
+    
+    <!-- Calendar -->
+    <string name="calendar">日历</string>
+    <string name="wakeup_record">起床记录</string>
+    <string name="on_time">准时</string>
+    <string name="late">迟到</string>
+    
+    <!-- Notifications -->
+    <string name="alarm_channel_name">闹钟</string>
+    <string name="alarm_channel_desc">闹钟通知</string>
+    <string name="alarm_notification_title">闹钟</string>
+    <string name="alarm_notification_text">点击关闭</string>
+    
+    <!-- Permissions -->
+    <string name="permission_required">需要权限</string>
+    <string name="exact_alarm_permission">需要精确闹钟权限才能确保闹钟准时响铃</string>
+    <string name="notification_permission">需要通知权限才能显示闹钟提醒</string>
+    <string name="grant_permission">授予权限</string>
+    <string name="battery_optimization_title">电池优化</string>
+    <string name="battery_optimization_desc">为确保闹钟可靠运行，请关闭本应用的电池优化</string>
+    <string name="go_to_settings">前往设置</string>
+    
+    <!-- Onboarding - Safety Notice -->
+    <string name="safety_notice_title">使用提醒（请先阅读）</string>
+    <string name="safety_notice_message">本应用面向起床困难用户设计。闹钟响起时可能出现较大音量的提示音、震动或持续提醒，以帮助你及时醒来。\n\n如你有心脏病、高血压等心血管疾病，或对突发响声敏感，请谨慎使用，必要时请先咨询医生。\n\n为保证唤醒效果，请勿将媒体音量调得过低，并建议先测试闹铃音量与提醒方式。</string>
+    <string name="safety_notice_agree">我已阅读并同意</string>
+    
+    <!-- Onboarding - Permissions -->
+    <string name="permissions_title">权限设置</string>
+    <string name="permissions_subtitle">为确保闹钟正常工作，请开启以下权限</string>
+    <string name="permission_overlay">显示在其他应用上层</string>
+    <string name="permission_overlay_desc">允许闹钟在任何情况下弹出全屏界面</string>
+    <string name="permission_exact_alarm">精确闹钟</string>
+    <string name="permission_exact_alarm_desc">允许闹钟在准确的时间触发</string>
+    <string name="permission_battery">忽略电池优化</string>
+    <string name="permission_battery_desc">防止系统在后台终止闹钟服务</string>
+    <string name="permission_notification">通知权限</string>
+    <string name="permission_notification_desc">允许显示闹钟通知和提醒</string>
+    <string name="go_to_enable">去开启</string>
+    <string name="refresh_permissions">刷新权限状态</string>
+    <string name="start_using">开始使用</string>
+    <string name="skip_for_now">暂时跳过</string>
+    <string name="permission_warning">部分权限未开启，可能影响闹钟正常工作</string>
+</resources>

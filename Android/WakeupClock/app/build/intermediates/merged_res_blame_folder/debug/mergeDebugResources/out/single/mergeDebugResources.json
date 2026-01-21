@@ -1,0 +1,194 @@
+[
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_flight.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/flight.mp4"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_doctor.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/doctor.mp4"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_exam.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/exam.mp4"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-hdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-hdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-xxhdpi_ic_launcher_round.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-xxhdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xxhdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_interview.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/interview.mp4"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-mdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-mdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_alarm6.mp3.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/alarm6.mp3"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_work.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/work.mp4"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-hdpi_ic_launcher_round.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-hdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xxxhdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xxxhdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-hdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xxxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-xxxhdpi_ic_launcher.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-xxxhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_alarm2.mp3.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/alarm2.mp3"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-mdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_alarm5.mp3.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/alarm5.mp3"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-mdpi_ic_launcher.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-mdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/drawable_ic_alarm.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/drawable/ic_alarm.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-xhdpi_ic_launcher.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-xhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_alarm1.mp3.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/alarm1.mp3"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/xml_locales_config.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/xml/locales_config.xml"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-mdpi_ic_launcher_round.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-mdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xxxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_alarm4.mp3.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/alarm4.mp3"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-hdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-xxxhdpi_ic_launcher_round.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-xxxhdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_meeting.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/meeting.mp4"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-xxhdpi_ic_launcher.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-xxhdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_train.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/train.mp4"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xhdpi_ic_launcher_foreground.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xhdpi/ic_launcher_foreground.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-hdpi_ic_launcher.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-hdpi/ic_launcher.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_date.mp4.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/date.mp4"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "com.wakeup.clock.app-main-66:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_alarm7.mp3.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/alarm7.mp3"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/mipmap-xhdpi_ic_launcher_round.xml.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/mipmap-xhdpi/ic_launcher_round.xml"
+    },
+    {
+        "merged": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-debug-64:/raw_alarm3.mp3.flat",
+        "source": "/Users/phoenix/.gradle/daemon/8.13/com.wakeup.clock.app-main-66:/raw/alarm3.mp3"
+    },
+    {
+        "merged": "com.wakeup.clock.app-debug-64:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.wakeup.clock.app-main-66:/drawable/ic_launcher_background.xml"
+    }
+]

@@ -462,7 +462,7 @@ struct VideoPlayerView: UIViewRepresentable {
         var backgroundObserver: NSObjectProtocol?
         
         func setupLooping() {
-            guard let player = player, let playerItem = playerItem else { return }
+            guard let _ = player, let playerItem = playerItem else { return }
             
             // 使用通知来监听播放结束
             loopObserver = NotificationCenter.default.addObserver(

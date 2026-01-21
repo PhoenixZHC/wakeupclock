@@ -12,16 +12,13 @@ import AlarmKit
 // MARK: - 待处理闹钟管理器
 
 /// 管理待处理的闹钟（用于应用未完全启动时保存状态）
-class PendingAlarmManager {
-    static let shared = PendingAlarmManager()
-    
-    private let pendingAlarmKey = "PendingAlarmId"
-    private let pendingAlarmTimeKey = "PendingAlarmTime"
-    
-    private init() {}
+/// 使用静态方法直接操作 UserDefaults，避免 Swift 6 并发问题
+enum PendingAlarmManager {
+    private static let pendingAlarmKey = "PendingAlarmId"
+    private static let pendingAlarmTimeKey = "PendingAlarmTime"
     
     /// 设置待处理的闹钟
-    func setPendingAlarm(id: String) {
+    static func setPendingAlarm(id: String) {
         UserDefaults.standard.set(id, forKey: pendingAlarmKey)
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: pendingAlarmTimeKey)
         
@@ -31,7 +28,7 @@ class PendingAlarmManager {
     }
     
     /// 获取并清除待处理的闹钟（2分钟内有效）
-    func consumePendingAlarm() -> String? {
+    static func consumePendingAlarm() -> String? {
         guard let alarmId = UserDefaults.standard.string(forKey: pendingAlarmKey),
               let timestamp = UserDefaults.standard.object(forKey: pendingAlarmTimeKey) as? TimeInterval else {
             return nil
@@ -59,13 +56,13 @@ class PendingAlarmManager {
     }
     
     /// 清除待处理的闹钟
-    func clearPendingAlarm() {
+    static func clearPendingAlarm() {
         UserDefaults.standard.removeObject(forKey: pendingAlarmKey)
         UserDefaults.standard.removeObject(forKey: pendingAlarmTimeKey)
     }
     
     /// 检查是否有待处理的闹钟（不消费）
-    func hasPendingAlarm() -> Bool {
+    static func hasPendingAlarm() -> Bool {
         guard let _ = UserDefaults.standard.string(forKey: pendingAlarmKey),
               let timestamp = UserDefaults.standard.object(forKey: pendingAlarmTimeKey) as? TimeInterval else {
             return false
@@ -105,7 +102,7 @@ struct ViewAlarmAppIntent: LiveActivityIntent {
         }
         
         // 先保存到 UserDefaults，确保即使应用未完全启动也不会丢失
-        PendingAlarmManager.shared.setPendingAlarm(id: alarmId)
+        await PendingAlarmManager.setPendingAlarm(id: alarmId)
         
         #if DEBUG
         print("🔔 ViewAlarmAppIntent 执行: \(alarmId)")

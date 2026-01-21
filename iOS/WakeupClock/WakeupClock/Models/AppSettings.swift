@@ -54,6 +54,9 @@ final class AppSettings {
     
     /// 防重新入睡提醒次数
     var antiSnoozeCount: Int
+
+    /// 是否已阅读并同意首次安全提示
+    var hasAcceptedSafetyNotice: Bool = false
     
     init(
         id: String = "default",
@@ -65,7 +68,8 @@ final class AppSettings {
         backupNotificationCount: Int = 5,
         enableAntiSnooze: Bool = true,
         antiSnoozeInterval: Int = 3,
-        antiSnoozeCount: Int = 2
+        antiSnoozeCount: Int = 2,
+        hasAcceptedSafetyNotice: Bool = false
     ) {
         self.id = id
         self.language = language
@@ -77,6 +81,7 @@ final class AppSettings {
         self.enableAntiSnooze = enableAntiSnooze
         self.antiSnoozeInterval = antiSnoozeInterval
         self.antiSnoozeCount = antiSnoozeCount
+        self.hasAcceptedSafetyNotice = hasAcceptedSafetyNotice
     }
     
     // MARK: - 计算属性

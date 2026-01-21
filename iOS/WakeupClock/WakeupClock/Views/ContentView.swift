@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var currentView: AppViewState = .dashboard
     @State private var activeAlarm: AlarmModel?
     @State private var cancellables = Set<AnyCancellable>()
+    @State private var showSafetyNotice = false
     
     var body: some View {
         ZStack {
@@ -55,12 +56,22 @@ struct ContentView: View {
             observeAlarmKitIntents()
             // 检查是否有待处理的闹钟（从锁屏状态唤醒时）
             checkPendingAlarm()
+            // 首次打开安全提示
+            checkSafetyNoticeIfNeeded()
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             // 当应用从后台进入前台时，检查待处理的闹钟
             if newPhase == .active && oldPhase != .active {
                 checkPendingAlarm()
+                checkSafetyNoticeIfNeeded()
             }
+        }
+        .alert(LocalizedString("safetyNoticeTitle"), isPresented: $showSafetyNotice) {
+            Button(LocalizedString("safetyNoticeAgree")) {
+                acceptSafetyNotice()
+            }
+        } message: {
+            Text(LocalizedString("safetyNoticeMessage"))
         }
     }
     
@@ -96,7 +107,7 @@ struct ContentView: View {
                     print("⚠️ 未找到闹钟 ID: \(alarmId)，将在稍后重试")
                     #endif
                     // 闹钟数据可能还没加载，保存到待处理队列
-                    PendingAlarmManager.shared.setPendingAlarm(id: alarmId)
+                    PendingAlarmManager.setPendingAlarm(id: alarmId)
                 }
             }
             .store(in: &cancellables)
@@ -130,6 +141,51 @@ struct ContentView: View {
             #endif
         }
     }
+
+    // MARK: - 首次安全提示
+
+    private func getOrCreateAppSettings() -> AppSettings {
+        if let existing = settings.first {
+            return existing
+        }
+
+        let created = AppSettings()
+        modelContext.insert(created)
+        do {
+            try modelContext.save()
+        } catch {
+            #if DEBUG
+            print("❌ 创建默认 AppSettings 失败: \(error)")
+            #endif
+        }
+        return created
+    }
+
+    private func checkSafetyNoticeIfNeeded() {
+        // 闹钟任务界面不弹窗，避免影响流程
+        guard currentView != .alarmLockdown else { return }
+
+        let appSettings = getOrCreateAppSettings()
+        if appSettings.hasAcceptedSafetyNotice == false {
+            showSafetyNotice = true
+        }
+    }
+
+    private func acceptSafetyNotice() {
+        let appSettings = getOrCreateAppSettings()
+        appSettings.hasAcceptedSafetyNotice = true
+        do {
+            try modelContext.save()
+        } catch {
+            #if DEBUG
+            print("❌ 保存安全提示同意状态失败: \(error)")
+            #endif
+        }
+        showSafetyNotice = false
+
+        // 如果此时有待处理闹钟（比如锁屏解锁触发），同意后继续进入任务
+        checkPendingAlarm()
+    }
     
     /// 检查是否有待处理的闹钟（用于从锁屏状态唤醒应用时）
     private func checkPendingAlarm() {
@@ -142,10 +198,10 @@ struct ContentView: View {
             guard currentView != .alarmLockdown else { return }
             
             // 检查是否有待处理的闹钟（不消费，先检查）
-            guard PendingAlarmManager.shared.hasPendingAlarm() else { return }
+            guard PendingAlarmManager.hasPendingAlarm() else { return }
             
             // 消费待处理的闹钟
-            if let alarmId = PendingAlarmManager.shared.consumePendingAlarm() {
+            if let alarmId = PendingAlarmManager.consumePendingAlarm() {
                 if let alarm = alarms.first(where: { $0.id == alarmId }) {
                     #if DEBUG
                     print("🔔 从待处理队列恢复闹钟: \(alarm.label) at \(alarm.time)")

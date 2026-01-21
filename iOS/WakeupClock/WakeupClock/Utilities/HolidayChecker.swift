@@ -9,7 +9,7 @@
 import Foundation
 
 /// 节假日信息模型
-struct HolidayInfo: Codable {
+struct HolidayInfo: Codable, Sendable {
     let holiday: Bool       // 是否为节假日
     let name: String        // 节日名称
     let wage: Int           // 工资倍数
@@ -18,18 +18,18 @@ struct HolidayInfo: Codable {
 }
 
 /// API 响应模型
-struct HolidayAPIResponse: Codable {
+struct HolidayAPIResponse: Codable, Sendable {
     let code: Int
     let holiday: [String: HolidayInfo]?
 }
 
 /// 单日查询 API 响应模型
-struct SingleDayAPIResponse: Codable {
+struct SingleDayAPIResponse: Codable, Sendable {
     let code: Int
     let type: TypeInfo?
     let holiday: HolidayInfo?
     
-    struct TypeInfo: Codable {
+    struct TypeInfo: Codable, Sendable {
         let type: Int       // 0: 工作日, 1: 周末, 2: 节假日, 3: 调休上班
         let name: String    // 类型名称
         let week: Int       // 星期几
@@ -174,7 +174,7 @@ class HolidayChecker {
     }
     
     /// 从 API 获取节假日数据
-    private func fetchHolidaysFromAPI(year: Int, completion: @escaping (Bool) -> Void) {
+    private func fetchHolidaysFromAPI(year: Int, completion: @escaping @Sendable (Bool) -> Void) {
         let urlString = "\(apiBaseURL)/year/\(year)"
         
         #if DEBUG
@@ -190,63 +190,46 @@ class HolidayChecker {
             return
         }
         
-        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let self = self,
-                  let data = data,
-                  error == nil else {
-                #if DEBUG
-                print("❌ HolidayChecker: 网络请求失败 - \(error?.localizedDescription ?? "未知错误")")
-                #endif
-                DispatchQueue.main.async {
-                    completion(false)
-                }
-                return
-            }
-            
-            #if DEBUG
-            if let httpResponse = response as? HTTPURLResponse {
-                print("📅 HolidayChecker: HTTP 状态码: \(httpResponse.statusCode)")
-            }
-            #endif
-            
+        // 使用 Task 来处理异步请求，避免 Swift 6 并发问题
+        Task {
             do {
-                let decoder = JSONDecoder()
-                let response = try decoder.decode(HolidayAPIResponse.self, from: data)
+                let (data, response) = try await URLSession.shared.data(from: url)
                 
-                if response.code == 0, let holidays = response.holiday {
-                    // 更新缓存
-                    self.holidayCache[year] = holidays
-                    self.lastUpdateTime[year] = Date()
-                    
-                    // 保存到磁盘
-                    self.saveCacheToDisk()
+                #if DEBUG
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📅 HolidayChecker: HTTP 状态码: \(httpResponse.statusCode)")
+                }
+                #endif
+                
+                let decoder = JSONDecoder()
+                let apiResponse = try decoder.decode(HolidayAPIResponse.self, from: data)
+                
+                if apiResponse.code == 0, let holidays = apiResponse.holiday {
+                    // 更新缓存（在主线程）
+                    await MainActor.run {
+                        self.holidayCache[year] = holidays
+                        self.lastUpdateTime[year] = Date()
+                        self.saveCacheToDisk()
+                    }
                     
                     #if DEBUG
                     print("✅ HolidayChecker: 成功获取 \(year) 年节假日数据，共 \(holidays.count) 条记录")
                     #endif
                     
-                    DispatchQueue.main.async {
-                        completion(true)
-                    }
+                    completion(true)
                 } else {
                     #if DEBUG
-                    print("❌ HolidayChecker: API 返回错误码: \(response.code)")
+                    print("❌ HolidayChecker: API 返回错误码: \(apiResponse.code)")
                     #endif
-                    DispatchQueue.main.async {
-                        completion(false)
-                    }
+                    completion(false)
                 }
             } catch {
                 #if DEBUG
-                print("❌ HolidayChecker: 解析节假日数据失败 - \(error)")
+                print("❌ HolidayChecker: 请求失败 - \(error.localizedDescription)")
                 #endif
-                DispatchQueue.main.async {
-                    completion(false)
-                }
+                completion(false)
             }
         }
-        
-        task.resume()
     }
     
     /// 本地备用节假日检查（当 API 不可用时使用）

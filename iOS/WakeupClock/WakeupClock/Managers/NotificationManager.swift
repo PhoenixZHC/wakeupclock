@@ -60,7 +60,6 @@ class NotificationManager: ObservableObject {
         // 先取消该闹钟的所有旧通知
         cancelAlarm(alarm)
         
-        let center = UNUserNotificationCenter.current()
         let calendar = Calendar.current
         let now = Date()
         

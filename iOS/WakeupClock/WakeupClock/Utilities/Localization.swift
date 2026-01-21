@@ -7,6 +7,33 @@
 
 import Foundation
 
+/// 初始化应用语言（方案A：首次启动跟随系统；用户手动选择后固定）
+func InitializeAppLanguageIfNeeded() {
+    let defaults = UserDefaults.standard
+
+    // 用户已手动设置过语言，则不覆盖
+    if defaults.string(forKey: "appLanguage") != nil {
+        return
+    }
+
+    // 读取系统首选语言
+    let preferred = Locale.preferredLanguages.first?.lowercased() ?? ""
+
+    // 中文（含简繁）都归为 zh，其余默认英文
+    let detected: String
+    if preferred.contains("zh") {
+        detected = "zh"
+    } else {
+        detected = "en"
+    }
+
+    defaults.set(detected, forKey: "appLanguage")
+
+    #if DEBUG
+    print("🌐 初始化语言为: \(detected) (system: \(preferred))")
+    #endif
+}
+
 /// 获取本地化字符串
 /// - Parameters:
 ///   - key: 字符串键
@@ -178,6 +205,9 @@ class Translations {
             "imAwake": "我醒了",
             "minutes": "分钟",
             "times": "次",
+            "safetyNoticeTitle": "使用提醒（请先阅读）",
+            "safetyNoticeMessage": "本应用面向起床困难用户设计。闹钟响起时可能出现较大音量的提示音、震动或持续提醒，以帮助你及时醒来。\n\n如你有心脏病、高血压等心血管疾病，或对突发响声敏感，请谨慎使用，必要时请先咨询医生。\n\n为保证唤醒效果，请勿将媒体音量调得过低，并建议先测试闹铃音量与提醒方式。",
+            "safetyNoticeAgree": "我已阅读并同意",
             // 闹钟声音名称
             "sound_alarm1": "闹钟 1",
             "sound_alarm2": "闹钟 2",
@@ -329,6 +359,9 @@ class Translations {
             "imAwake": "I'm Awake",
             "minutes": "minutes",
             "times": "times",
+            "safetyNoticeTitle": "Safety Notice (Please Read)",
+            "safetyNoticeMessage": "This app is designed for people who have difficulty waking up. When an alarm rings, it may use loud sounds, vibration, or repeated reminders to help you wake up.\n\nIf you have heart disease, high blood pressure, or are sensitive to sudden loud sounds, please use with caution and consult a doctor if needed.\n\nFor best results, avoid setting your media volume too low, and test the alarm volume and reminder behavior in advance.",
+            "safetyNoticeAgree": "I Understand and Agree",
             // Alarm sound names
             "sound_alarm1": "Alarm 1",
             "sound_alarm2": "Alarm 2",

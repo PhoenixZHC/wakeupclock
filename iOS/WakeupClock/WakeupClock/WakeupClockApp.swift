@@ -43,6 +43,9 @@ struct WakeupClockApp: App {
         
         // 确保 AppSettings 存在
         initializeAppSettings()
+
+        // 方案A：首次启动自动跟随系统语言；用户手动选择后固定
+        InitializeAppLanguageIfNeeded()
         
         // 请求 AlarmKit 权限
         if #available(iOS 26.0, *) {

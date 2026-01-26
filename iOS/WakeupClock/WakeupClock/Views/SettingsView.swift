@@ -72,6 +72,15 @@ struct SettingsView: View {
                     Text(LocalizedString("antiSnoozeDesc"))
                 }
                 
+                // 音量提醒设置
+                Section {
+                    VolumeReminderSettingsView(settings: currentSettings)
+                } header: {
+                    Text(LocalizedString("volumeReminderSectionTitle"))
+                } footer: {
+                    Text(LocalizedString("volumeReminderDesc"))
+                }
+                
                 // 数据管理
                 Section(header: Text(LocalizedString("dataManagement"))) {
                     Button(action: {
@@ -350,6 +359,64 @@ struct AntiSnoozeSettingsView: View {
                 Text("2 \(LocalizedString("times"))").tag(2)
                 Text("3 \(LocalizedString("times"))").tag(3)
             }
+        }
+    }
+}
+
+// MARK: - 音量提醒设置子视图
+
+struct VolumeReminderSettingsView: View {
+    @Bindable var settings: AppSettings
+    @StateObject private var volumeManager = VolumeCheckManager.shared
+    
+    // 将小时和分钟转换为 Date 用于 DatePicker
+    private var reminderTime: Binding<Date> {
+        Binding(
+            get: {
+                var components = DateComponents()
+                components.hour = settings.volumeReminderHour
+                components.minute = settings.volumeReminderMinute
+                return Calendar.current.date(from: components) ?? Date()
+            },
+            set: { newDate in
+                let components = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                settings.volumeReminderHour = components.hour ?? 21
+                settings.volumeReminderMinute = components.minute ?? 0
+                volumeManager.scheduleDailyReminder(settings: settings)
+            }
+        )
+    }
+    
+    var body: some View {
+        Toggle(LocalizedString("enableVolumeReminder"), isOn: Binding(
+            get: { settings.enableVolumeReminder },
+            set: { newValue in
+                settings.enableVolumeReminder = newValue
+                if newValue {
+                    // 请求通知权限，权限授予后再设置定时提醒
+                    Task {
+                        let granted = await NotificationManager.shared.requestAuthorization()
+                        if granted {
+                            volumeManager.scheduleDailyReminder(settings: settings)
+                        } else {
+                            #if DEBUG
+                            print("⚠️ 用户拒绝了通知权限")
+                            #endif
+                        }
+                    }
+                } else {
+                    volumeManager.cancelDailyReminder()
+                }
+            }
+        ))
+        
+        if settings.enableVolumeReminder {
+            // 提醒时间设置（使用 DatePicker）
+            DatePicker(
+                LocalizedString("volumeReminderTime"),
+                selection: reminderTime,
+                displayedComponents: .hourAndMinute
+            )
         }
     }
 }

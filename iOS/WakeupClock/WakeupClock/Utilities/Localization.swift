@@ -65,7 +65,7 @@ class Translations {
     
     private let translations: [String: [String: String]] = [
         "zh": [
-            "appName": "起了么",
+            "appName": "别睡了",
             "dataManagement": "数据管理",
             "version": "版本",
             "confirmReset": "确认重置",
@@ -101,7 +101,7 @@ class Translations {
             "noiseBombing": "噪音轰炸倒计时！",
             "startMission": "开始解除任务",
             "completeMission": "完成任务以关闭闹钟",
-            "systemLocked": "起了么 WakeGuard 系统锁定中",
+            "systemLocked": "别睡了 WakeGuard 系统锁定中",
             "mathMission": "任务: 数学解题",
             "crazyClick": "疯狂点击!",
             "clickInstruction": "连续点击按钮 20 次即可关闭闹钟",
@@ -168,7 +168,7 @@ class Translations {
             "guideTip4Title": "锁屏和灵动岛显示",
             "guideTip4Desc": "闹钟触发时会在锁屏界面和灵动岛（Dynamic Island）显示，您可以直接在锁屏上停止闹钟或查看详情。",
             "guideTip5Title": "需要授予闹钟权限",
-            "guideTip5Desc": "首次使用会弹出授权请求。如果拒绝授权，需要到\"设置 > 起了么 > 闹钟\"中手动开启。",
+            "guideTip5Desc": "首次使用会弹出授权请求。如果拒绝授权，需要到\"设置 > 别睡了 > 闹钟\"中手动开启。",
             "guideTip6Title": "设备关机时无法触发",
             "guideTip6Desc": "如果设备完全关机，闹钟无法触发。请确保睡前设备保持开机状态并有足够电量。",
             "guideTip7Title": "点击解锁按钮开始任务",
@@ -216,7 +216,18 @@ class Translations {
             "sound_alarm5": "闹钟 5",
             "sound_alarm6": "闹钟 6",
             "sound_alarm7": "闹钟 7",
-            "sound_beep": "哔哔声"
+            "sound_beep": "哔哔声",
+            // 音量提醒
+            "volumeReminderSectionTitle": "睡前音量提醒",
+            "volumeReminderTitle": "早点休息吧",
+            "enableVolumeReminder": "启用睡前提醒",
+            "volumeReminderDesc": "每天在设定时间提醒您检查手机音量，确保闹钟能正常唤醒",
+            "volumeReminderBody": "睡前别忘了检查手机音量，确保闹钟能正常唤醒你",
+            "volumeReminderTime": "提醒时间",
+            // 音量过低警告
+            "lowVolumeAlertTitle": "音量较低",
+            "lowVolumeAlertMessage": "当前手机音量较低，可能会影响闹钟唤醒效果，建议调高音量",
+            "ok": "知道了"
         ],
         "en": [
             "appName": "Wakeup Clock",
@@ -370,7 +381,18 @@ class Translations {
             "sound_alarm5": "Alarm 5",
             "sound_alarm6": "Alarm 6",
             "sound_alarm7": "Alarm 7",
-            "sound_beep": "Beep"
+            "sound_beep": "Beep",
+            // Volume reminder
+            "volumeReminderSectionTitle": "Bedtime Volume Reminder",
+            "volumeReminderTitle": "Time to Rest",
+            "enableVolumeReminder": "Enable Bedtime Reminder",
+            "volumeReminderDesc": "Get a daily reminder at your set time to check phone volume and ensure alarms can wake you up",
+            "volumeReminderBody": "Don't forget to check your phone volume before bed to ensure alarms can wake you up",
+            "volumeReminderTime": "Reminder Time",
+            // Low volume alert
+            "lowVolumeAlertTitle": "Low Volume",
+            "lowVolumeAlertMessage": "Your phone volume is low, which may affect alarm effectiveness. Please consider increasing the volume.",
+            "ok": "OK"
         ]
     ]
     

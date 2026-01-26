@@ -36,5 +36,17 @@ data class AppSettings(
     val antiSnoozeCount: Int = 2,
     
     /** 是否已接受安全提示 */
-    val hasAcceptedSafetyNotice: Boolean = false
+    val hasAcceptedSafetyNotice: Boolean = false,
+    
+    /** 是否启用音量提醒功能 */
+    val enableVolumeReminder: Boolean = false,
+    
+    /** 音量提醒阈值（0.0-1.0，低于此值会提醒） */
+    val volumeReminderThreshold: Float = 0.3f,
+    
+    /** 音量提醒时间（小时，默认21点即晚上9点） */
+    val volumeReminderHour: Int = 21,
+    
+    /** 音量提醒时间（分钟，默认0分） */
+    val volumeReminderMinute: Int = 0
 )

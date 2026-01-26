@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.LocaleList
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -279,6 +280,89 @@ fun SettingsScreen(
                                 Text("$count ${stringResource(R.string.times)}")
                             }
                         }
+                    }
+                }
+            }
+            
+            // 音量提醒设置
+            SettingsSection(
+                title = stringResource(R.string.volume_reminder_section_title),
+                subtitle = stringResource(R.string.volume_reminder_desc),
+                isDark = isDark
+            ) {
+                // 启用开关
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.enable_volume_reminder),
+                        color = if (isDark) Color.White else Color.Black
+                    )
+                    Switch(
+                        checked = settings.enableVolumeReminder,
+                        onCheckedChange = { 
+                            val newSettings = settings.copy(enableVolumeReminder = it)
+                            onSettingsChanged(newSettings)
+                            // 更新音量管理器
+                            val volumeManager = com.wakeup.clock.manager.VolumeCheckManager.getInstance(context)
+                            if (it) {
+                                volumeManager.startMonitoring()
+                                volumeManager.scheduleDailyCheck(newSettings)
+                            } else {
+                                volumeManager.stopMonitoring()
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = Purple500
+                        )
+                    )
+                }
+                
+                if (settings.enableVolumeReminder) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // 提醒时间设置（使用时间选择器）
+                    var showTimePicker by remember { mutableStateOf(false) }
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showTimePicker = true }
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.volume_reminder_time),
+                            color = if (isDark) Color.White else Color.Black
+                        )
+                        Text(
+                            text = String.format("%02d:%02d", settings.volumeReminderHour, settings.volumeReminderMinute),
+                            color = Purple500,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    
+                    if (showTimePicker) {
+                        TimePickerDialog(
+                            initialHour = settings.volumeReminderHour,
+                            initialMinute = settings.volumeReminderMinute,
+                            onDismiss = { showTimePicker = false },
+                            onConfirm = { hour, minute ->
+                                val newSettings = settings.copy(
+                                    volumeReminderHour = hour,
+                                    volumeReminderMinute = minute
+                                )
+                                onSettingsChanged(newSettings)
+                                // 重新调度检查
+                                val volumeManager = com.wakeup.clock.manager.VolumeCheckManager.getInstance(context)
+                                volumeManager.scheduleDailyCheck(newSettings)
+                                showTimePicker = false
+                            }
+                        )
                     }
                 }
             }
@@ -670,4 +754,41 @@ private fun getCurrentLanguage(context: Context): String {
 private fun setAppLanguage(context: Context, languageCode: String) {
     val localeManager = context.getSystemService(LocaleManager::class.java)
     localeManager.applicationLocales = LocaleList.forLanguageTags(languageCode)
+}
+
+/**
+ * 时间选择对话框
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimePickerDialog(
+    initialHour: Int,
+    initialMinute: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (hour: Int, minute: Int) -> Unit
+) {
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialHour,
+        initialMinute = initialMinute,
+        is24Hour = true
+    )
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(timePickerState.hour, timePickerState.minute)
+            }) {
+                Text("确定")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        },
+        text = {
+            TimePicker(state = timePickerState)
+        }
+    )
 }

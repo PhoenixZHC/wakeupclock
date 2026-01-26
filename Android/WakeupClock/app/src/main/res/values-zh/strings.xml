@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">起了么</string>
+    <string name="app_name">别睡了</string>
     <string name="slogan">每天准时起床，从此告别赖床</string>
     
     <!-- Dashboard -->
@@ -122,7 +122,7 @@
     <string name="recommended_practices">推荐设置</string>
     <string name="not_recommended_practices">注意事项</string>
     <string name="guide_tip1_title">关闭电池优化</string>
-    <string name="guide_tip1_desc">设置 > 应用 > 起了么 > 电池 > 不受限制</string>
+    <string name="guide_tip1_desc">设置 > 应用 > 别睡了 > 电池 > 不受限制</string>
     <string name="guide_tip2_title">允许自启动</string>
     <string name="guide_tip2_desc">在手机设置中允许本应用自启动</string>
     <string name="guide_tip3_title">保持通知开启</string>
@@ -178,4 +178,14 @@
     <string name="start_using">开始使用</string>
     <string name="skip_for_now">暂时跳过</string>
     <string name="permission_warning">部分权限未开启，可能影响闹钟正常工作</string>
+    
+    <!-- Volume Reminder -->
+    <string name="volume_reminder_section_title">睡前音量提醒</string>
+    <string name="volume_reminder_title">早点休息吧</string>
+    <string name="enable_volume_reminder">启用睡前提醒</string>
+    <string name="volume_reminder_desc">每天在设定时间提醒您检查手机音量，确保闹钟能正常唤醒</string>
+    <string name="volume_reminder_body">睡前别忘了检查手机音量，确保闹钟能正常唤醒你</string>
+    <string name="volume_reminder_time">提醒时间</string>
+    <string name="volume_reminder_channel_name">睡前提醒</string>
+    <string name="volume_reminder_channel_desc">睡前音量提醒通知</string>
 </resources>

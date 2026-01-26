@@ -10,6 +10,34 @@ import SwiftUI
 import SwiftData
 import UserNotifications
 
+// 通知代理类（单例，避免被释放）
+class NotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationDelegate()
+    var container: ModelContainer?
+    
+    private override init() {
+        super.init()
+    }
+    
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        // 用户点击通知后的处理（目前不需要特殊处理）
+        completionHandler()
+    }
+    
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        // 即使应用在前台也显示通知
+        completionHandler([.banner, .sound, .badge])
+    }
+}
+
 @main
 struct WakeupClockApp: App {
     // 配置SwiftData模型容器
@@ -56,6 +84,10 @@ struct WakeupClockApp: App {
         
         // 预加载节假日数据
         HolidayChecker.preloadHolidays()
+        
+        // 设置通知代理（使用单例避免被释放）
+        NotificationDelegate.shared.container = container
+        UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
     }
     
     /// 初始化应用设置（确保设置对象存在）

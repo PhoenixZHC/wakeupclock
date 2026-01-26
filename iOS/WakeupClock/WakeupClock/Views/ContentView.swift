@@ -8,10 +8,12 @@
 import SwiftUI
 import SwiftData
 import Combine
+import StoreKit
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.requestReview) private var requestReview
     @EnvironmentObject var alarmManager: AlarmManager
     @EnvironmentObject var themeManager: ThemeManager
     @Query private var alarms: [AlarmModel]
@@ -21,6 +23,7 @@ struct ContentView: View {
     @State private var activeAlarm: AlarmModel?
     @State private var cancellables = Set<AnyCancellable>()
     @State private var showSafetyNotice = false
+    @State private var showLowVolumeAlert = false
     
     var body: some View {
         ZStack {
@@ -58,12 +61,20 @@ struct ContentView: View {
             checkPendingAlarm()
             // 首次打开安全提示
             checkSafetyNoticeIfNeeded()
+            // 初始化睡前提醒并检测当前音量
+            initializeVolumeReminder()
+            // 设置 requestReview 环境值给 AppReviewManager
+            AppReviewManager.shared.setRequestReviewAction { requestReview() }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             // 当应用从后台进入前台时，检查待处理的闹钟
             if newPhase == .active && oldPhase != .active {
                 checkPendingAlarm()
                 checkSafetyNoticeIfNeeded()
+                // 检测当前音量
+                checkVolumeOnForeground()
+                // 记录应用打开并检查是否需要请求评价（从后台/非活跃状态进入前台时记录）
+                AppReviewManager.shared.recordAppOpen()
             }
         }
         .alert(LocalizedString("safetyNoticeTitle"), isPresented: $showSafetyNotice) {
@@ -72,6 +83,11 @@ struct ContentView: View {
             }
         } message: {
             Text(LocalizedString("safetyNoticeMessage"))
+        }
+        .alert(LocalizedString("lowVolumeAlertTitle"), isPresented: $showLowVolumeAlert) {
+            Button(LocalizedString("ok")) { }
+        } message: {
+            Text(LocalizedString("lowVolumeAlertMessage"))
         }
     }
     
@@ -185,6 +201,49 @@ struct ContentView: View {
 
         // 如果此时有待处理闹钟（比如锁屏解锁触发），同意后继续进入任务
         checkPendingAlarm()
+    }
+    
+    /// 初始化睡前提醒并检测当前音量
+    private func initializeVolumeReminder() {
+        let appSettings = getOrCreateAppSettings()
+        let volumeManager = VolumeCheckManager.shared
+        
+        // 如果启用了睡前提醒，设置定时通知（会在内部检查权限）
+        if appSettings.enableVolumeReminder {
+            // 先请求权限（如果已授权会直接返回 true）
+            Task {
+                let granted = await NotificationManager.shared.requestAuthorization()
+                if granted {
+                    volumeManager.scheduleDailyReminder(settings: appSettings)
+                }
+            }
+        }
+        
+        // 检测当前音量，如果过低则提醒
+        if volumeManager.checkVolumeOnAppOpen() {
+            // 延迟显示，避免与安全提示冲突
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                // 只有在没有显示安全提示时才显示音量警告
+                if !showSafetyNotice {
+                    showLowVolumeAlert = true
+                }
+            }
+        }
+    }
+    
+    /// 应用进入前台时检测音量
+    private func checkVolumeOnForeground() {
+        let volumeManager = VolumeCheckManager.shared
+        
+        // 检测当前音量，如果过低则提醒
+        if volumeManager.checkVolumeOnAppOpen() {
+            // 延迟显示，避免与其他弹窗冲突
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if !showSafetyNotice {
+                    showLowVolumeAlert = true
+                }
+            }
+        }
     }
     
     /// 检查是否有待处理的闹钟（用于从锁屏状态唤醒应用时）

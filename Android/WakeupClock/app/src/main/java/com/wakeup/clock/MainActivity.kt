@@ -74,6 +74,19 @@ class MainActivity : ComponentActivity() {
             }
             
             WakeupClockTheme(themeMode = settings.themeMode) {
+                val context = LocalContext.current
+                
+                // 初始化音量检测
+                LaunchedEffect(settings.enableVolumeReminder) {
+                    val volumeManager = com.wakeup.clock.manager.VolumeCheckManager.getInstance(context)
+                    if (settings.enableVolumeReminder) {
+                        volumeManager.startMonitoring()
+                        volumeManager.scheduleDailyCheck(settings)
+                    } else {
+                        volumeManager.stopMonitoring()
+                    }
+                }
+                
                 if (showOnboarding) {
                     OnboardingScreen(
                         onComplete = {

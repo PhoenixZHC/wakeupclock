@@ -103,6 +103,11 @@
             </intent-filter>
         </receiver>
         
+        <!-- 音量检查广播接收器 -->
+        <receiver
+            android:name=".service.VolumeCheckReceiver"
+            android:exported="false" />
+        
     </application>
 
 </manifest>

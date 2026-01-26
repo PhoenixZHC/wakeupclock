@@ -178,4 +178,14 @@
     <string name="start_using">Start Using</string>
     <string name="skip_for_now">Skip for Now</string>
     <string name="permission_warning">Some permissions not granted, alarms may not work properly</string>
+    
+    <!-- Volume Reminder -->
+    <string name="volume_reminder_section_title">Bedtime Volume Reminder</string>
+    <string name="volume_reminder_title">Time to Rest</string>
+    <string name="enable_volume_reminder">Enable Bedtime Reminder</string>
+    <string name="volume_reminder_desc">Get a daily reminder at your set time to check phone volume and ensure alarms can wake you up</string>
+    <string name="volume_reminder_body">Don\'t forget to check your phone volume before bed to ensure alarms can wake you up</string>
+    <string name="volume_reminder_time">Reminder Time</string>
+    <string name="volume_reminder_channel_name">Bedtime Reminder</string>
+    <string name="volume_reminder_channel_desc">Bedtime volume reminder notifications</string>
 </resources>

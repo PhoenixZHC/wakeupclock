@@ -58,6 +58,18 @@ final class AppSettings {
     /// 是否已阅读并同意首次安全提示
     var hasAcceptedSafetyNotice: Bool = false
     
+    /// 启用音量提醒功能
+    var enableVolumeReminder: Bool = false
+    
+    /// 音量提醒阈值（0.0-1.0，低于此值会提醒）
+    var volumeReminderThreshold: Double = 0.3
+    
+    /// 音量提醒时间（小时，默认21点即晚上9点）
+    var volumeReminderHour: Int = 21
+    
+    /// 音量提醒时间（分钟，默认0分）
+    var volumeReminderMinute: Int = 0
+    
     init(
         id: String = "default",
         language: String = "zh",
@@ -69,7 +81,11 @@ final class AppSettings {
         enableAntiSnooze: Bool = true,
         antiSnoozeInterval: Int = 3,
         antiSnoozeCount: Int = 2,
-        hasAcceptedSafetyNotice: Bool = false
+        hasAcceptedSafetyNotice: Bool = false,
+        enableVolumeReminder: Bool = false,
+        volumeReminderThreshold: Double = 0.3,
+        volumeReminderHour: Int = 21,
+        volumeReminderMinute: Int = 0
     ) {
         self.id = id
         self.language = language
@@ -82,6 +98,10 @@ final class AppSettings {
         self.antiSnoozeInterval = antiSnoozeInterval
         self.antiSnoozeCount = antiSnoozeCount
         self.hasAcceptedSafetyNotice = hasAcceptedSafetyNotice
+        self.enableVolumeReminder = enableVolumeReminder
+        self.volumeReminderThreshold = volumeReminderThreshold
+        self.volumeReminderHour = volumeReminderHour
+        self.volumeReminderMinute = volumeReminderMinute
     }
     
     // MARK: - 计算属性

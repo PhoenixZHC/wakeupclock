@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下载 - 别睡了</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 20px;
+        }
+        .container { 
+            max-width: 500px; 
+            background: white; 
+            border-radius: 24px; 
+            padding: 50px 40px; 
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3); 
+            text-align: center; 
+        }
+        .logo { font-size: 80px; margin-bottom: 20px; }
+        h1 { font-size: 36px; color: #333; margin-bottom: 10px; }
+        .tagline { font-size: 18px; color: #667eea; margin-bottom: 30px; }
+        .description { color: #666; margin-bottom: 40px; font-size: 15px; line-height: 1.8; }
+        
+        /* 设备检测提示 */
+        .device-info {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: #666;
+        }
+        .device-info .device-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        /* 按钮样式 */
+        .buttons { display: flex; flex-direction: column; gap: 15px; }
+        .btn { 
+            display: inline-block; 
+            padding: 18px 30px; 
+            border-radius: 12px; 
+            text-decoration: none; 
+            font-weight: 600; 
+            font-size: 16px; 
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); 
+        }
+        .btn-secondary { 
+            background: #f8f9fa; 
+            color: #667eea; 
+            border: 2px solid #667eea; 
+        }
+        .btn-secondary:hover { 
+            background: #667eea; 
+            color: white; 
+        }
+        
+        /* 下载信息 */
+        .download-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #999;
+        }
+        .download-info p {
+            margin: 5px 0;
+        }
+        
+        /* 链接 */
+        .links { 
+            margin-top: 40px; 
+            padding-top: 30px; 
+            border-top: 1px solid #eee; 
+        }
+        .links a { 
+            color: #667eea; 
+            text-decoration: none; 
+            margin: 0 15px; 
+            font-size: 14px; 
+        }
+        .footer { 
+            margin-top: 30px; 
+            color: #999; 
+            font-size: 12px; 
+        }
+        .badge { 
+            display: inline-block; 
+            background: #667eea; 
+            color: white; 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 12px; 
+            margin-bottom: 20px; 
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 500px) { 
+            .container { padding: 35px 25px; } 
+            h1 { font-size: 28px; } 
+        }
+        
+        /* 隐藏类 */
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="badge">智能闹钟应用</div>
+        <div class="logo">⏰</div>
+        <h1>别睡了</h1>
+        <p class="tagline">专治起床困难户</p>
+        
+        <!-- iOS 设备显示区域 -->
+        <div id="ios-section" class="hidden">
+            <div class="device-info">
+                <div class="device-icon">📱</div>
+                <p>检测到您使用的是 iOS 设备</p>
+            </div>
+            <div class="description">
+                点击下方按钮跳转到 App Store 下载应用
+            </div>
+            <div class="buttons">
+                <a href="#" id="app-store-btn" class="btn btn-primary">
+                    <span id="app-store-text">前往 App Store 下载</span>
+                </a>
+                <a href="index.html" class="btn btn-secondary">返回首页</a>
+            </div>
+        </div>
+        
+        <!-- Android/其他设备显示区域 -->
+        <div id="android-section" class="hidden">
+            <div class="device-info">
+                <div class="device-icon">🤖</div>
+                <p>检测到您使用的是 Android 设备或其他设备</p>
+            </div>
+            <div class="description">
+                点击下方按钮下载 Android 版本安装包
+            </div>
+            <div class="buttons">
+                <a href="#" id="download-btn" class="btn btn-primary" download>
+                    <span id="download-text">下载 Android 版本</span>
+                </a>
+                <a href="index.html" class="btn btn-secondary">返回首页</a>
+            </div>
+            <div class="download-info">
+                <p>文件大小：<span id="apk-size">-</span></p>
+                <p>版本号：<span id="apk-version">-</span></p>
+            </div>
+        </div>
+        
+        <div class="links">
+            <a href="index.html">首页</a>
+            <a href="privacy.html">隐私政策</a>
+            <a href="support.html">技术支持</a>
+        </div>
+        <div class="footer">© 2024-2026 别睡了 (Wakeup Clock). All rights reserved.</div>
+    </div>
+
+    <script>
+        // ============================================
+        // 配置区域 - 请根据实际情况修改以下配置
+        // ============================================
+
+        // App Store 配置
+        // 方式1: 使用 App Store ID（推荐）
+        // 获取方式：应用上架后，在 App Store Connect 中可以看到 App ID
+        // 例如：如果 App Store 链接是 https://apps.apple.com/app/id6757984120
+        // 那么 APP_STORE_ID 就是 "1234567890"
+        const APP_STORE_ID = "id6757984120"; // 请替换为实际的 App Store ID
+        
+        // 方式2: 直接使用完整的 App Store 链接（如果方式1不工作，可以使用这个）
+        // const APP_STORE_URL = "https://apps.apple.com/app/id1234567890";
+        
+        // Android APK 配置
+        // APK 文件路径（相对于 docs 文件夹）
+        // 例如：如果 APK 文件放在 docs/apk/ 文件夹下，文件名为 app-release.apk
+        // 那么 APK_PATH 就是 "apk/app-release.apk"
+        const APK_PATH = "apk/app-release.apk"; // 请替换为实际的 APK 文件路径
+        
+        // ============================================
+        // 设备检测逻辑
+        // ============================================
+        
+        /**
+         * 检测设备类型
+         * @returns {string} 'ios' | 'android' | 'other'
+         */
+        function detectDevice() {
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            // 检测 iOS 设备
+            // iPhone、iPad、iPod 或 Mac 上的 Safari
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'ios';
+            }
+            
+            // 检测 Mac 上的 Safari（可能也想跳转到 App Store）
+            if (/Macintosh/.test(userAgent) && /Safari/.test(userAgent) && !/Chrome/.test(userAgent)) {
+                return 'ios'; // Mac 用户也可能想下载 iOS 版本
+            }
+            
+            // 检测 Android 设备
+            if (/android/i.test(userAgent)) {
+                return 'android';
+            }
+            
+            // 其他设备
+            return 'other';
+        }
+        
+        /**
+         * 获取 App Store 链接
+         * @returns {string} App Store URL
+         */
+        function getAppStoreUrl() {
+            // 如果配置了完整的 URL，直接使用
+            if (typeof APP_STORE_URL !== 'undefined' && APP_STORE_URL !== "YOUR_APP_STORE_ID") {
+                return APP_STORE_URL;
+            }
+            
+            // 如果配置了 App Store ID，构建链接
+            if (APP_STORE_ID && APP_STORE_ID !== "YOUR_APP_STORE_ID") {
+                // 使用 itms-apps:// 协议，可以直接在 iOS 设备上打开 App Store 应用
+                return `itms-apps://itunes.apple.com/app/id${APP_STORE_ID}`;
+                // 或者使用 https:// 链接（在浏览器中打开）
+                // return `https://apps.apple.com/app/id${APP_STORE_ID}`;
+            }
+            
+            // 如果还没有配置，返回占位链接
+            return "#";
+        }
+        
+        /**
+         * 初始化页面
+         */
+        function init() {
+            const device = detectDevice();
+            const iosSection = document.getElementById('ios-section');
+            const androidSection = document.getElementById('android-section');
+            const appStoreBtn = document.getElementById('app-store-btn');
+            const downloadBtn = document.getElementById('download-btn');
+            
+            if (device === 'ios') {
+                // 显示 iOS 区域
+                iosSection.classList.remove('hidden');
+                androidSection.classList.add('hidden');
+                
+                // 设置 App Store 链接
+                const appStoreUrl = getAppStoreUrl();
+                appStoreBtn.href = appStoreUrl;
+                
+                // 如果还没有配置 App Store ID，显示提示
+                if (APP_STORE_ID === "YOUR_APP_STORE_ID") {
+                    document.getElementById('app-store-text').textContent = '即将上架 App Store';
+                    appStoreBtn.href = "#";
+                    appStoreBtn.onclick = function(e) {
+                        e.preventDefault();
+                        alert('应用即将上架 App Store，请稍后再试！');
+                    };
+                }
+            } else {
+                // 显示 Android/其他设备区域
+                iosSection.classList.add('hidden');
+                androidSection.classList.remove('hidden');
+                
+                // 设置 APK 下载链接
+                downloadBtn.href = APK_PATH;
+                
+                // 显示 APK 信息
+                document.getElementById('apk-size').textContent = APK_SIZE;
+                document.getElementById('apk-version').textContent = APK_VERSION;
+                
+                // 如果还没有配置 APK 路径，显示提示
+                if (APK_PATH === "apk/app-release.apk") {
+                    document.getElementById('download-text').textContent = 'APK 文件配置中';
+                    downloadBtn.href = "#";
+                    downloadBtn.onclick = function(e) {
+                        e.preventDefault();
+                        alert('APK 文件正在配置中，请稍后再试！');
+                    };
+                }
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

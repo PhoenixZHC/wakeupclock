@@ -4,10 +4,6 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// ---------- 版本检查：官网地址（必填） ----------
-// 官网根地址（不要带末尾斜杠）。应用会请求 该地址/api/version 检测新版本，并打开该域名下的 APK 下载链接。
-val versionCheckBaseUrl = "\"http://115.29.231.33:5615\""
-
 android {
     namespace = "com.wakeup.clock"
     compileSdk = 36
@@ -21,7 +17,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "VERSION_CHECK_BASE_URL", versionCheckBaseUrl)
+        // 版本检查：官网地址（不要带末尾斜杠）
+        // 应用会请求 该地址/api/version 检测新版本，并打开该域名下的 APK 下载链接
+        buildConfigField("String", "VERSION_CHECK_BASE_URL", "\"http://115.29.231.33:5615\"")
     }
 
     buildTypes {

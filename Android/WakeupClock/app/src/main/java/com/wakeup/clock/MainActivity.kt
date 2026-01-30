@@ -14,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +42,7 @@ import com.wakeup.clock.data.database.AppDatabase
 import com.wakeup.clock.ui.screens.*
 import com.wakeup.clock.ui.theme.*
 import com.wakeup.clock.ui.viewmodel.AlarmViewModel
+import com.wakeup.clock.util.VersionCheck
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -75,16 +77,62 @@ class MainActivity : ComponentActivity() {
             
             WakeupClockTheme(themeMode = settings.themeMode) {
                 val context = LocalContext.current
+                val volumeManager = remember { com.wakeup.clock.manager.VolumeCheckManager.getInstance(context) }
+                // 版本更新：每次打开 App 都检查
+                var updateInfo by remember { mutableStateOf<com.wakeup.clock.util.RemoteVersion?>(null) }
+                LaunchedEffect(Unit) {
+                    val remote = VersionCheck.fetchLatest()
+                    if (remote != null && VersionCheck.isNewer(remote)) {
+                        updateInfo = remote
+                    }
+                }
+                if (updateInfo != null) {
+                    UpdateAvailableDialog(
+                        versionName = updateInfo!!.versionName,
+                        onDownload = {
+                            try {
+                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(VersionCheck.fullDownloadUrl(updateInfo!!)))
+                                context.startActivity(intent)
+                            } catch (_: Exception) { }
+                            updateInfo = null
+                        },
+                        onDismiss = { updateInfo = null }
+                    )
+                }
+                
+                // 监听音量警告弹窗状态
+                val showVolumeWarning by volumeManager.showVolumeWarningDialog.collectAsState()
+                val volumeWarningInfo by volumeManager.volumeWarningInfo.collectAsState()
                 
                 // 初始化音量检测
                 LaunchedEffect(settings.enableVolumeReminder) {
-                    val volumeManager = com.wakeup.clock.manager.VolumeCheckManager.getInstance(context)
                     if (settings.enableVolumeReminder) {
                         volumeManager.startMonitoring()
                         volumeManager.scheduleDailyCheck(settings)
+                        // 打开 App 时立即检查音量（显示弹窗而非通知）
+                        volumeManager.checkVolumeInApp(settings)
                     } else {
                         volumeManager.stopMonitoring()
                     }
+                }
+                
+                // 音量过低警告弹窗
+                if (showVolumeWarning && volumeWarningInfo != null) {
+                    VolumeWarningDialog(
+                        currentVolumePercent = volumeWarningInfo!!.currentVolumePercent,
+                        thresholdPercent = volumeWarningInfo!!.thresholdPercent,
+                        onDismiss = { volumeManager.dismissVolumeWarningDialog() },
+                        onOpenSettings = {
+                            volumeManager.dismissVolumeWarningDialog()
+                            // 打开系统音量设置
+                            try {
+                                val intent = Intent(android.provider.Settings.ACTION_SOUND_SETTINGS)
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                // 如果无法打开设置，忽略错误
+                            }
+                        }
+                    )
                 }
                 
                 if (showOnboarding) {
@@ -588,4 +636,171 @@ private fun MainContent(viewModel: AlarmViewModel) {
             )
         }
     }
+}
+
+/**
+ * 发现新版本弹窗：下载 = 打开浏览器到下载页/直链，稍后 = 仅当次生效
+ */
+@Composable
+private fun UpdateAvailableDialog(
+    versionName: String,
+    onDownload: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DarkCardBackground,
+        title = {
+            Text(
+                text = stringResource(R.string.update_available_title),
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.update_available_message, versionName),
+                color = Color.White.copy(alpha = 0.9f)
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onDownload,
+                colors = ButtonDefaults.buttonColors(containerColor = Purple500)
+            ) {
+                Text(stringResource(R.string.update_download))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.update_later),
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            }
+        }
+    )
+}
+
+/**
+ * 音量过低警告弹窗
+ */
+@Composable
+private fun VolumeWarningDialog(
+    currentVolumePercent: Int,
+    thresholdPercent: Int,
+    onDismiss: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = DarkCardBackground,
+        icon = {
+            @Suppress("DEPRECATION")
+            Icon(
+                imageVector = Icons.Filled.VolumeDown,
+                contentDescription = null,
+                tint = Orange,
+                modifier = Modifier.size(48.dp)
+            )
+        },
+        title = {
+            Text(
+                text = stringResource(R.string.volume_reminder_title),
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(R.string.volume_reminder_body_detail, currentVolumePercent, thresholdPercent),
+                    color = Color.White.copy(alpha = 0.9f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // 音量条指示
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    @Suppress("DEPRECATION")
+                    Icon(
+                        imageVector = Icons.Filled.VolumeOff,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(8.dp)
+                            .background(
+                                color = Color.White.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(fraction = currentVolumePercent / 100f)
+                                .background(
+                                    color = if (currentVolumePercent < thresholdPercent) Orange else Green,
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                        )
+                        // 阈值标记
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .width(2.dp)
+                                .align(Alignment.CenterStart)
+                                .offset(x = (thresholdPercent).dp * 2) // 粗略的比例
+                                .background(Color.White)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    @Suppress("DEPRECATION")
+                    Icon(
+                        imageVector = Icons.Filled.VolumeUp,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "当前: $currentVolumePercent% | 建议: ≥$thresholdPercent%",
+                    fontSize = 12.sp,
+                    color = Color.White.copy(alpha = 0.6f)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onOpenSettings,
+                colors = ButtonDefaults.buttonColors(containerColor = Purple500)
+            ) {
+                Text(stringResource(R.string.go_to_settings))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.got_it),
+                    color = Color.White.copy(alpha = 0.7f)
+                )
+            }
+        }
+    )
 }

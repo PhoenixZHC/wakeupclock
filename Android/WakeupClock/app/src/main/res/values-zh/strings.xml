@@ -9,6 +9,12 @@
     <string name="streak_sentence">已连续 %d 天准时起床！</string>
     <string name="encouragement_message">今天开始你的连续记录吧！</string>
     <string name="countdown_format">%s 后响铃</string>
+
+    <!-- 版本更新 -->
+    <string name="update_available_title">发现新版本</string>
+    <string name="update_available_message">新版本 %1$s 已发布，是否前往下载？</string>
+    <string name="update_download">下载</string>
+    <string name="update_later">稍后</string>
     
     <!-- Add Alarm -->
     <string name="new_alarm">新建闹钟</string>
@@ -156,6 +162,7 @@
     <string name="battery_optimization_title">电池优化</string>
     <string name="battery_optimization_desc">为确保闹钟可靠运行，请关闭本应用的电池优化</string>
     <string name="go_to_settings">前往设置</string>
+    <string name="got_it">知道了</string>
     
     <!-- Onboarding - Safety Notice -->
     <string name="safety_notice_title">使用提醒（请先阅读）</string>
@@ -185,7 +192,40 @@
     <string name="enable_volume_reminder">启用睡前提醒</string>
     <string name="volume_reminder_desc">每天在设定时间提醒您检查手机音量，确保闹钟能正常唤醒</string>
     <string name="volume_reminder_body">睡前别忘了检查手机音量，确保闹钟能正常唤醒你</string>
+    <string name="volume_reminder_body_detail">当前音量仅为 %1$d%%，低于设定阈值 %2$d%%。请调高音量，确保闹钟能正常唤醒你。</string>
     <string name="volume_reminder_time">提醒时间</string>
     <string name="volume_reminder_channel_name">睡前提醒</string>
     <string name="volume_reminder_channel_desc">睡前音量提醒通知</string>
+    
+    <!-- Background Protection -->
+    <string name="background_protection_title">后台保护</string>
+    <string name="background_protection_desc">为确保闹钟可靠运行，请保护本应用不被系统清理。不同手机品牌设置方式不同，请点击查看指南。</string>
+    <string name="open_app_settings">应用设置</string>
+    <string name="view_guide">查看指南</string>
+    <string name="background_protection_guide_title">后台保护设置指南</string>
+    <string name="background_protection_guide_intro">不同手机厂商有各自的省电策略，可能会清理后台应用。请根据您的手机品牌，按以下指南设置：</string>
+    
+    <!-- Brand specific guides -->
+    <string name="guide_huawei_step1">设置 → 应用 → 应用管理 → 找到「起床闹钟」</string>
+    <string name="guide_huawei_step2">电池 → 开启「允许后台活动」</string>
+    <string name="guide_huawei_step3">应用启动管理 → 设为「手动管理」并开启全部三项</string>
+    
+    <string name="guide_xiaomi_step1">设置 → 应用设置 → 应用管理 → 找到「起床闹钟」</string>
+    <string name="guide_xiaomi_step2">省电策略 → 选择「无限制」</string>
+    <string name="guide_xiaomi_step3">开启「自启动」权限</string>
+    
+    <string name="guide_oppo_step1">设置 → 电池 → 更多设置</string>
+    <string name="guide_oppo_step2">找到「起床闹钟」→ 关闭「优化电池使用」</string>
+    <string name="guide_oppo_step3">设置 → 应用管理 → 找到应用 → 开启「允许自启动」</string>
+    
+    <string name="guide_vivo_step1">设置 → 电池 → 后台耗电管理</string>
+    <string name="guide_vivo_step2">找到「起床闹钟」→ 设为「允许」</string>
+    <string name="guide_vivo_step3">设置 → 应用 → 自启动 → 开启「起床闹钟」</string>
+    
+    <string name="guide_samsung_step1">设置 → 应用程序 → 找到「起床闹钟」</string>
+    <string name="guide_samsung_step2">电池 → 选择「不受限」</string>
+    <string name="guide_samsung_step3">设置 → 电池 → 电池优化 → 选择不优化此应用</string>
+    
+    <string name="general_tip_title">通用技巧</string>
+    <string name="general_tip_content">1. 在最近任务中锁定应用（下滑应用卡片或点击锁定图标）\n2. 将应用添加到白名单/信任应用\n3. 关闭「智能省电」等功能\n4. 避免从最近任务中强制清除应用</string>
 </resources>

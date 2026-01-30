@@ -1,0 +1,12 @@
+{
+  "name": "wakeupclock-website",
+  "version": "1.0.0",
+  "description": "别睡了官网 Node 服务",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}

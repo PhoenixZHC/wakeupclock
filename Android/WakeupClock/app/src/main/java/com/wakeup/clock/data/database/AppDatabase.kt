@@ -18,7 +18,7 @@ import com.wakeup.clock.data.model.WakeUpRecord
         WakeUpRecord::class,
         AppSettings::class
     ],
-    version = 3,
+    version = 4,  // 升级版本以适配 Room 2.8.x
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -39,7 +39,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "wakeup_clock_database"
                 )
-                    .fallbackToDestructiveMigration() // 开发阶段：schema变更时删除旧数据重建
+                    .fallbackToDestructiveMigration(dropAllTables = true) // 开发阶段：schema变更时删除旧数据重建
                     .build()
                 INSTANCE = instance
                 instance

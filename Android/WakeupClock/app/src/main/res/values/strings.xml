@@ -9,6 +9,12 @@
     <string name="streak_sentence">%d days in a row!</string>
     <string name="encouragement_message">Start your streak today!</string>
     <string name="countdown_format">Alarm in %s</string>
+
+    <!-- Update check -->
+    <string name="update_available_title">New Version Available</string>
+    <string name="update_available_message">Version %1$s is available. Go to download?</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
     
     <!-- Add Alarm -->
     <string name="new_alarm">New Alarm</string>
@@ -156,6 +162,7 @@
     <string name="battery_optimization_title">Battery Optimization</string>
     <string name="battery_optimization_desc">For reliable alarms, please disable battery optimization for this app</string>
     <string name="go_to_settings">Go to Settings</string>
+    <string name="got_it">Got It</string>
     
     <!-- Onboarding - Safety Notice -->
     <string name="safety_notice_title">Safety Notice (Please Read)</string>
@@ -185,7 +192,40 @@
     <string name="enable_volume_reminder">Enable Bedtime Reminder</string>
     <string name="volume_reminder_desc">Get a daily reminder at your set time to check phone volume and ensure alarms can wake you up</string>
     <string name="volume_reminder_body">Don\'t forget to check your phone volume before bed to ensure alarms can wake you up</string>
+    <string name="volume_reminder_body_detail">Current volume is only %1$d%%, below your set threshold of %2$d%%. Please turn up the volume to ensure alarms can wake you up.</string>
     <string name="volume_reminder_time">Reminder Time</string>
     <string name="volume_reminder_channel_name">Bedtime Reminder</string>
     <string name="volume_reminder_channel_desc">Bedtime volume reminder notifications</string>
+    
+    <!-- Background Protection -->
+    <string name="background_protection_title">Background Protection</string>
+    <string name="background_protection_desc">To ensure alarms work reliably, please protect this app from being killed by the system. Different phone brands have different settings.</string>
+    <string name="open_app_settings">App Settings</string>
+    <string name="view_guide">View Guide</string>
+    <string name="background_protection_guide_title">Background Protection Guide</string>
+    <string name="background_protection_guide_intro">Different phone manufacturers have their own power management strategies that may kill background apps. Follow the guide below based on your phone brand:</string>
+    
+    <!-- Brand specific guides -->
+    <string name="guide_huawei_step1">Settings → Apps → Apps → Find \"WakeUp Clock\"</string>
+    <string name="guide_huawei_step2">Battery → Enable \"Allow background activity\"</string>
+    <string name="guide_huawei_step3">App launch → Set to \"Manual\" and enable all three options</string>
+    
+    <string name="guide_xiaomi_step1">Settings → Apps → Manage apps → Find \"WakeUp Clock\"</string>
+    <string name="guide_xiaomi_step2">Battery saver → Select \"No restrictions\"</string>
+    <string name="guide_xiaomi_step3">Enable \"Autostart\" permission</string>
+    
+    <string name="guide_oppo_step1">Settings → Battery → More settings</string>
+    <string name="guide_oppo_step2">Find \"WakeUp Clock\" → Disable \"Optimize battery\"</string>
+    <string name="guide_oppo_step3">Settings → App management → Find the app → Enable \"Allow auto startup\"</string>
+    
+    <string name="guide_vivo_step1">Settings → Battery → Background power consumption management</string>
+    <string name="guide_vivo_step2">Find \"WakeUp Clock\" → Set to \"Allow\"</string>
+    <string name="guide_vivo_step3">Settings → Apps → Autostart → Enable for \"WakeUp Clock\"</string>
+    
+    <string name="guide_samsung_step1">Settings → Apps → Find \"WakeUp Clock\"</string>
+    <string name="guide_samsung_step2">Battery → Select \"Unrestricted\"</string>
+    <string name="guide_samsung_step3">Settings → Battery → Battery optimization → Don\'t optimize this app</string>
+    
+    <string name="general_tip_title">General Tips</string>
+    <string name="general_tip_content">1. Lock the app in recent tasks (swipe down on the app card or tap the lock icon)\n2. Add the app to whitelist/trusted apps\n3. Disable \"Smart power saving\" or similar features\n4. Avoid force stopping the app from recent tasks</string>
 </resources>

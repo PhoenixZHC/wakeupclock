@@ -392,6 +392,12 @@ fun SettingsScreen(
                 }
             }
             
+            // 后台保护设置
+            BackgroundProtectionSection(
+                isDark = isDark,
+                context = context
+            )
+            
             // 帮助
             SettingsSection(title = stringResource(R.string.help), isDark = isDark) {
                 TextButton(
@@ -688,6 +694,267 @@ private fun PermissionItem(
         }
         TextButton(onClick = onClick) {
             Text("去开启", color = Purple500)
+        }
+    }
+}
+
+/**
+ * 后台保护设置区域
+ * 引导用户去系统设置中保护应用不被清理
+ */
+@Composable
+private fun BackgroundProtectionSection(
+    isDark: Boolean,
+    context: Context
+) {
+    var showDetailDialog by remember { mutableStateOf(false) }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Purple500.copy(alpha = 0.1f)
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    tint = Purple500
+                )
+                Text(
+                    text = stringResource(R.string.background_protection_title),
+                    fontWeight = FontWeight.Bold,
+                    color = Purple500
+                )
+            }
+            
+            Text(
+                text = stringResource(R.string.background_protection_desc),
+                fontSize = 14.sp,
+                color = if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.7f),
+                lineHeight = 20.sp
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // 打开应用设置按钮
+                OutlinedButton(
+                    onClick = {
+                        try {
+                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.parse("package:${context.packageName}")
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            // 忽略
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(R.string.open_app_settings),
+                        fontSize = 13.sp
+                    )
+                }
+                
+                // 查看详细指南
+                Button(
+                    onClick = { showDetailDialog = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = Purple500),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Help,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = stringResource(R.string.view_guide),
+                        fontSize = 13.sp
+                    )
+                }
+            }
+        }
+    }
+    
+    // 详细指南对话框
+    if (showDetailDialog) {
+        BackgroundProtectionGuideDialog(
+            onDismiss = { showDetailDialog = false }
+        )
+    }
+}
+
+/**
+ * 后台保护详细指南对话框
+ */
+@Composable
+private fun BackgroundProtectionGuideDialog(
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    tint = Purple500
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.background_protection_guide_title))
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.background_protection_guide_intro),
+                    color = Color.Gray
+                )
+                
+                // 华为/荣耀
+                BrandGuideSection(
+                    brand = "华为 / 荣耀",
+                    steps = listOf(
+                        stringResource(R.string.guide_huawei_step1),
+                        stringResource(R.string.guide_huawei_step2),
+                        stringResource(R.string.guide_huawei_step3)
+                    )
+                )
+                
+                // 小米/红米
+                BrandGuideSection(
+                    brand = "小米 / 红米",
+                    steps = listOf(
+                        stringResource(R.string.guide_xiaomi_step1),
+                        stringResource(R.string.guide_xiaomi_step2),
+                        stringResource(R.string.guide_xiaomi_step3)
+                    )
+                )
+                
+                // OPPO/一加/realme
+                BrandGuideSection(
+                    brand = "OPPO / 一加 / realme",
+                    steps = listOf(
+                        stringResource(R.string.guide_oppo_step1),
+                        stringResource(R.string.guide_oppo_step2),
+                        stringResource(R.string.guide_oppo_step3)
+                    )
+                )
+                
+                // vivo/iQOO
+                BrandGuideSection(
+                    brand = "vivo / iQOO",
+                    steps = listOf(
+                        stringResource(R.string.guide_vivo_step1),
+                        stringResource(R.string.guide_vivo_step2),
+                        stringResource(R.string.guide_vivo_step3)
+                    )
+                )
+                
+                // 三星
+                BrandGuideSection(
+                    brand = "三星",
+                    steps = listOf(
+                        stringResource(R.string.guide_samsung_step1),
+                        stringResource(R.string.guide_samsung_step2),
+                        stringResource(R.string.guide_samsung_step3)
+                    )
+                )
+                
+                // 通用方法
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = Orange.copy(alpha = 0.1f)
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Lightbulb,
+                                contentDescription = null,
+                                tint = Orange,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = stringResource(R.string.general_tip_title),
+                                fontWeight = FontWeight.SemiBold,
+                                color = Orange
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = stringResource(R.string.general_tip_content),
+                            fontSize = 13.sp,
+                            color = Color.Gray,
+                            lineHeight = 18.sp
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.got_it))
+            }
+        }
+    )
+}
+
+/**
+ * 品牌设置指南
+ */
+@Composable
+private fun BrandGuideSection(
+    brand: String,
+    steps: List<String>
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = brand,
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp,
+            color = Purple500
+        )
+        steps.forEachIndexed { index, step ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = "${index + 1}.",
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = step,
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    lineHeight = 18.sp
+                )
+            }
         }
     }
 }

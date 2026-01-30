@@ -35,7 +35,7 @@ import kotlinx.coroutines.delay
 
 /**
  * 防赖床确认Activity
- * 显示确认界面，用户需要在1分钟内点击确认
+ * 显示确认界面，用户需要在30秒内点击确认
  * 如果超时未确认，则重新触发完整闹钟（需要做任务）
  */
 class AntiSnoozeActivity : ComponentActivity() {
@@ -132,7 +132,7 @@ class AntiSnoozeActivity : ComponentActivity() {
     companion object {
         const val EXTRA_REMINDER_INDEX = "reminder_index"
         const val EXTRA_TOTAL_REMINDERS = "total_reminders"
-        const val TIMEOUT_SECONDS = 60 // 1分钟超时
+        const val TIMEOUT_SECONDS = 30 // 30秒超时
     }
 }
 
@@ -146,7 +146,7 @@ private fun AntiSnoozeScreen(
     onConfirm: () -> Unit,
     onTimeout: () -> Unit
 ) {
-    // 倒计时（60秒）
+    // 倒计时（30秒）
     var remainingSeconds by remember { mutableIntStateOf(AntiSnoozeActivity.TIMEOUT_SECONDS) }
     
     // 倒计时逻辑

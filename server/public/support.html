@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术支持 - 别睡了</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.8; color: #333; background: #f8fafc; min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; padding: 40px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+        .header { text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 2px solid #f1f5f9; }
+        .logo { font-size: 48px; margin-bottom: 10px; }
+        h1 { color: #0f172a; font-size: 28px; margin-bottom: 10px; }
+        .app-name { color: #6366f1; font-size: 18px; font-weight: 500; }
+        .tagline { color: #94a3b8; font-size: 14px; margin-top: 10px; }
+        h2 { color: #6366f1; font-size: 20px; margin: 30px 0 15px 0; padding-left: 15px; border-left: 4px solid #6366f1; }
+        p { margin-bottom: 15px; }
+        ul { margin: 15px 0; padding-left: 25px; }
+        li { margin-bottom: 10px; }
+        .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 25px 0; }
+        .feature-card { background: #f8fafc; border-radius: 12px; padding: 15px; text-align: center; }
+        .feature-card .icon { font-size: 28px; margin-bottom: 8px; }
+        .feature-card h4 { color: #6366f1; margin-bottom: 5px; font-size: 13px; }
+        .feature-card p { font-size: 11px; color: #64748b; margin-bottom: 0; }
+        .faq-item { background: #f8fafc; border-radius: 12px; padding: 18px; margin: 12px 0; }
+        .faq-item h4 { color: #6366f1; margin-bottom: 8px; font-size: 14px; }
+        .faq-item p { margin-bottom: 0; font-size: 13px; color: #475569; }
+        .contact-box { background: #6366f1; border-radius: 12px; padding: 25px; margin-top: 30px; text-align: center; color: white; }
+        .contact-box h3 { color: white; margin-bottom: 12px; }
+        .contact-box a { color: white; text-decoration: none; font-weight: 600; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 20px; display: inline-block; margin-top: 8px; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9; color: #94a3b8; font-size: 14px; }
+        .footer a { color: #6366f1; text-decoration: none; margin: 0 10px; }
+        .back { display: inline-block; margin-bottom: 20px; color: #6366f1; text-decoration: none; font-size: 14px; }
+        .lang-switch { text-align: right; margin-bottom: 20px; }
+        .lang-switch a { color: #6366f1; text-decoration: none; padding: 5px 15px; border: 1px solid #6366f1; border-radius: 20px; font-size: 14px; }
+        .requirement-box { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 12px; padding: 15px; margin: 20px 0; }
+        .requirement-box h4 { color: #92400e; margin-bottom: 8px; font-size: 14px; }
+        .requirement-box p { color: #92400e; margin-bottom: 0; font-size: 13px; }
+        @media (max-width: 600px) { .container { padding: 25px; } h1 { font-size: 24px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back">← 返回首页</a>
+        <div class="lang-switch"><a href="support-en.html">English</a></div>
+        <div class="header">
+            <div class="logo">⏰</div>
+            <h1>技术支持</h1>
+            <div class="app-name">别睡了 - 智能闹钟应用</div>
+            <div class="tagline">专治起床困难户</div>
+        </div>
+        <h2>应用功能</h2>
+        <div class="feature-grid">
+            <div class="feature-card"><div class="icon">🔔</div><h4>系统级闹钟</h4><p>突破静音和勿扰</p></div>
+            <div class="feature-card"><div class="icon">🧩</div><h4>任务解锁</h4><p>5种任务确保清醒</p></div>
+            <div class="feature-card"><div class="icon">🛡️</div><h4>防赖床模式</h4><p>定期确认防止入睡</p></div>
+            <div class="feature-card"><div class="icon">📅</div><h4>起床打卡</h4><p>记录连续起床天数</p></div>
+            <div class="feature-card"><div class="icon">🎬</div><h4>场景视频</h4><p>8种标签配合视频</p></div>
+            <div class="feature-card"><div class="icon">🌙</div><h4>主题切换</h4><p>深色/浅色自动适配</p></div>
+        </div>
+        <div class="requirement-box">
+            <h4>⚠️ 系统要求</h4>
+            <p>本应用需要 <strong>iOS 26.0</strong> 或更高版本，使用 AlarmKit 框架实现系统级闹钟功能。</p>
+        </div>
+        <h2>常见问题</h2>
+        <div class="faq-item"><h4>Q: 闹钟没有响怎么办？</h4><p>请确保已授予应用闹钟权限。前往「设置」→「别睡了」→「闹钟」，确保权限已开启。</p></div>
+        <div class="faq-item"><h4>Q: 如何关闭闹钟？</h4><p>闹钟响起后，点击「解锁闹钟」按钮，然后完成随机任务（如数学题）即可关闭闹钟。</p></div>
+        <div class="faq-item"><h4>Q: 防赖床模式是什么？</h4><p>完成闹钟任务后，系统会定期发送提醒确认您是否仍然清醒，可在「设置」中调整。</p></div>
+        <div class="faq-item"><h4>Q: 闹钟会突破静音模式吗？</h4><p>是的！本应用使用 AlarmKit 框架，闹钟会自动突破静音、勿扰和专注模式。</p></div>
+        <div class="faq-item"><h4>Q: 如何跳过节假日？</h4><p>在添加闹钟时，开启「法定节假日不响铃」选项即可。</p></div>
+        <h2>使用技巧</h2>
+        <ul>
+            <li><strong>建议充电过夜</strong>：低电量可能导致设备自动关机</li>
+            <li><strong>选择合适的任务</strong>：数学任务最能唤醒大脑</li>
+            <li><strong>善用防赖床模式</strong>：对于容易重新入睡的用户建议开启</li>
+        </ul>
+        <div class="contact-box">
+            <h3>📧 联系我们</h3>
+            <p>如果您遇到任何问题或有功能建议：</p>
+            <a href="mailto:2081577684@qq.com">2081577684@qq.com</a>
+        </div>
+        <div class="footer">
+            <p><a href="index.html">首页</a> | <a href="privacy.html">隐私政策</a> | <a href="support.html">技术支持</a></p>
+            <p style="margin-top: 15px;">© 2024-2026 别睡了 (Wakeup Clock). All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

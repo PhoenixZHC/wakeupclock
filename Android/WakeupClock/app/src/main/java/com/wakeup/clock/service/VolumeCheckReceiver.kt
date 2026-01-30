@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.wakeup.clock.data.database.AppDatabase
-import com.wakeup.clock.data.model.AppSettings
 import com.wakeup.clock.manager.VolumeCheckManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,8 +23,10 @@ class VolumeCheckReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "Volume check receiver triggered")
         
-        val scope = CoroutineScope(Dispatchers.IO)
-        scope.launch {
+        // 使用 goAsync() 允许在 BroadcastReceiver 中执行异步操作
+        val pendingResult = goAsync()
+        
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 // 从数据库获取设置
                 val database = AppDatabase.getDatabase(context)
@@ -43,8 +44,13 @@ class VolumeCheckReceiver : BroadcastReceiver() {
                 // 重新调度下一次检查（每天重复）
                 volumeManager.scheduleDailyCheck(settings)
                 
+                Log.d(TAG, "音量检查完成，已重新调度下次检查")
+                
             } catch (e: Exception) {
                 Log.e(TAG, "执行音量检查失败", e)
+            } finally {
+                // 完成异步操作
+                pendingResult.finish()
             }
         }
     }

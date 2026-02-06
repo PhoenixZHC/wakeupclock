@@ -26,7 +26,8 @@ class VolumeCheckManager private constructor(private val context: Context) {
     
     companion object {
         private const val TAG = "VolumeCheckManager"
-        private const val NOTIFICATION_CHANNEL_ID = "volume_reminder_channel"
+        // 前台创建渠道可避免 OPPO/ColorOS 在后台创建时降级；若仍被改静音可改为 v5
+        private const val NOTIFICATION_CHANNEL_ID = "volume_reminder_channel_v4"
         private const val NOTIFICATION_ID = 1001
         private const val ALARM_REQUEST_CODE = 2001
         
@@ -80,6 +81,23 @@ class VolumeCheckManager private constructor(private val context: Context) {
         val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         return if (maxVolume > 0) currentVolume.toFloat() / maxVolume.toFloat() else 0f
+    }
+    
+    /**
+     * 将系统媒体音量设为指定比例（0.0–1.0），与 iOS 一致
+     * 用于「调至 70%」等一键调节
+     */
+    fun setSystemVolume(targetRatio: Float) {
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        if (maxVolume <= 0) return
+        val index = (maxVolume * targetRatio.coerceIn(0f, 1f)).toInt().coerceIn(0, maxVolume)
+        try {
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0)
+            _currentVolume.value = getCurrentVolume()
+            Log.d(TAG, "已设置媒体音量至 ${(getCurrentVolume() * 100).toInt()}%")
+        } catch (e: Exception) {
+            Log.e(TAG, "设置媒体音量失败: ${e.message}")
+        }
     }
     
     /**
@@ -193,94 +211,122 @@ class VolumeCheckManager private constructor(private val context: Context) {
         }
     }
     
+    /** 上次前台音量检测时间（用于 10 秒防抖） */
+    @Volatile
+    private var lastVolumeCheckTimeMs: Long = 0L
+    
+    /** 打开应用时音量检测的固定阈值（与「睡前提醒」设置无关） */
+    private val inAppVolumeThreshold = 0.5f
+    
     /**
-     * 应用内检查音量（前台检查，显示弹窗）
-     * @return true 如果音量过低需要提醒，false 如果音量正常
+     * 每次打开应用/回到前台时检测音量，低于 50% 则弹窗提醒。
+     * 与「睡前音量提醒」设置无关，无需用户单独开启；带 10 秒防抖。
      */
-    fun checkVolumeInApp(settings: AppSettings): Boolean {
-        if (!settings.enableVolumeReminder) return false
-        
+    fun checkVolumeOnAppOpen(): Boolean {
+        val now = System.currentTimeMillis()
+        if (lastVolumeCheckTimeMs != 0L && now - lastVolumeCheckTimeMs < 10_000) return false
+        lastVolumeCheckTimeMs = now
         val volume = getCurrentVolume()
-        val threshold = settings.volumeReminderThreshold
-        
-        Log.d(TAG, "应用内检查音量: $volume, 阈值: $threshold")
-        
-        if (volume < threshold) {
+        Log.d(TAG, "打开应用检测音量: $volume, 阈值: $inAppVolumeThreshold")
+        if (volume < inAppVolumeThreshold) {
             val volumePercent = (volume * 100).toInt()
-            val thresholdPercent = (threshold * 100).toInt()
-            
+            val thresholdPercent = (inAppVolumeThreshold * 100).toInt()
             _volumeWarningInfo.value = VolumeWarningInfo(volumePercent, thresholdPercent)
             _showVolumeWarningDialog.value = true
-            
             Log.d(TAG, "音量过低，显示应用内弹窗提醒")
             return true
         }
-        
         return false
     }
     
     /**
-     * 发送音量提醒通知（带声音，用于后台提醒）
+     * 应用进入前台时检测音量（依赖设置：仅当开启「睡前音量提醒」时执行，带 10 秒防抖）
+     * 用于与设置联动的场景；日常「打开应用就检测」请用 checkVolumeOnAppOpen()。
+     */
+    fun checkVolumeOnForeground(settings: AppSettings): Boolean {
+        if (!settings.enableVolumeReminder) return false
+        val now = System.currentTimeMillis()
+        if (lastVolumeCheckTimeMs != 0L && now - lastVolumeCheckTimeMs < 10_000) return false
+        lastVolumeCheckTimeMs = now
+        return checkVolumeInApp(settings)
+    }
+    
+    /**
+     * 应用内检查音量（使用设置中的阈值，供睡前提醒等逻辑使用）
+     */
+    fun checkVolumeInApp(settings: AppSettings): Boolean {
+        if (!settings.enableVolumeReminder) return false
+        val volume = getCurrentVolume()
+        val threshold = settings.volumeReminderThreshold
+        Log.d(TAG, "应用内检查音量: $volume, 阈值: $threshold")
+        if (volume < threshold) {
+            val volumePercent = (volume * 100).toInt()
+            val thresholdPercent = (threshold * 100).toInt()
+            _volumeWarningInfo.value = VolumeWarningInfo(volumePercent, thresholdPercent)
+            _showVolumeWarningDialog.value = true
+            Log.d(TAG, "音量过低，显示应用内弹窗提醒")
+            return true
+        }
+        return false
+    }
+    
+    /**
+     * 在前台创建「睡前提醒」通知渠道（仅当渠道不存在时）。
+     * 必须在用户开启睡前提醒或应用前台时调用，避免在后台创建被 OPPO/ColorOS 降级为静音。
+     */
+    fun ensureVolumeReminderChannel() {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return
+        val systemNotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        if (systemNotificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) != null) return
+        val notificationSoundUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        val audioAttributes = android.media.AudioAttributes.Builder()
+            .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
+            .build()
+        val channel = android.app.NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            context.getString(R.string.volume_reminder_channel_name),
+            android.app.NotificationManager.IMPORTANCE_MAX
+        ).apply {
+            description = context.getString(R.string.volume_reminder_channel_desc)
+            setShowBadge(true)
+            lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+            enableLights(true)
+            lightColor = android.graphics.Color.GRAY
+            setSound(notificationSoundUri, audioAttributes)
+            enableVibration(true)
+            vibrationPattern = longArrayOf(0, 200, 100, 200)
+        }
+        systemNotificationManager.createNotificationChannel(channel)
+        Log.d(TAG, "已在前台创建睡前提醒通知渠道")
+    }
+    
+    /**
+     * 发送睡前音量提醒通知（使用短信/通知类提示音；通知栏+锁屏+提示音）
      */
     private fun sendVolumeReminderNotification(currentVolume: Float, threshold: Float) {
         try {
             val notificationManager = NotificationManagerCompat.from(context)
-            val systemNotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
-            
-            // 获取默认通知铃声
-            val defaultSoundUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            
-            // 创建通知渠道（如果还没有创建）
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                // 先删除旧的渠道（如果存在），以确保更新生效
-                systemNotificationManager.deleteNotificationChannel(NOTIFICATION_CHANNEL_ID)
-                
-                // 获取通知声音的音频属性
-                val audioAttributes = android.media.AudioAttributes.Builder()
-                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .setUsage(android.media.AudioAttributes.USAGE_NOTIFICATION)
-                    .build()
-                
-                val channel = android.app.NotificationChannel(
-                    NOTIFICATION_CHANNEL_ID,
-                    context.getString(R.string.volume_reminder_channel_name),
-                    android.app.NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    description = context.getString(R.string.volume_reminder_channel_desc)
-                    enableVibration(true)
-                    vibrationPattern = longArrayOf(0, 500, 200, 500)
-                    enableLights(true)
-                    lightColor = android.graphics.Color.RED
-                    setShowBadge(true)
-                    lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
-                    setBypassDnd(true) // 绕过勿扰模式
-                    setSound(defaultSoundUri, audioAttributes) // 设置通知声音
+                // 若渠道尚未存在（例如未在前台创建过），后台仅作一次创建，但部分厂商会降级
+                val systemNotificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+                if (systemNotificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null) {
+                    ensureVolumeReminderChannel()
                 }
-                systemNotificationManager.createNotificationChannel(channel)
             }
             
-            // 检查通知权限
             if (!notificationManager.areNotificationsEnabled()) {
                 Log.w(TAG, "通知权限未开启，无法发送音量提醒通知")
                 return
             }
             
-            // 计算当前音量百分比
+            val notificationSoundUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             val volumePercent = (currentVolume * 100).toInt()
             val thresholdPercent = (threshold * 100).toInt()
             
-            // 创建点击通知时打开App的Intent
             val contentIntent = android.app.PendingIntent.getActivity(
                 context,
                 0,
-                context.packageManager.getLaunchIntentForPackage(context.packageName),
-                android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
-            )
-            
-            // 创建全屏Intent（用于在锁屏时显示）
-            val fullScreenIntent = android.app.PendingIntent.getActivity(
-                context,
-                1,
                 context.packageManager.getLaunchIntentForPackage(context.packageName),
                 android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
             )
@@ -291,20 +337,21 @@ class VolumeCheckManager private constructor(private val context: Context) {
                 .setContentText(context.getString(R.string.volume_reminder_body_detail, volumePercent, thresholdPercent))
                 .setStyle(NotificationCompat.BigTextStyle()
                     .bigText(context.getString(R.string.volume_reminder_body_detail, volumePercent, thresholdPercent)))
-                .setPriority(NotificationCompat.PRIORITY_MAX) // 使用最高优先级
-                .setCategory(NotificationCompat.CATEGORY_REMINDER) // 设为提醒类别
-                .setSound(defaultSoundUri) // 设置通知声音
-                .setVibrate(longArrayOf(0, 500, 200, 500)) // 震动模式
+                .setPriority(NotificationCompat.PRIORITY_MAX)  // 与 IMPORTANCE_MAX 一致，争取锁屏与提示音
+                .setCategory(NotificationCompat.CATEGORY_REMINDER) // 提醒类，更易被系统当作需响铃+锁屏
+                .setSound(notificationSoundUri)
+                .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE) // 部分厂商会参考
+                .setOnlyAlertOnce(false)
+                .setWhen(System.currentTimeMillis())
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent)
-                .setFullScreenIntent(fullScreenIntent, true) // 高优先级全屏Intent，确保弹出
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC) // 在锁屏上显示完整内容
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(false)
                 .build()
             
             notificationManager.notify(NOTIFICATION_ID, notification)
             
-            Log.d(TAG, "已发送音量提醒通知（带声音），当前音量: $volumePercent%, 阈值: $thresholdPercent%")
+            Log.d(TAG, "已发送睡前音量提醒通知，当前音量: $volumePercent%, 阈值: $thresholdPercent%")
         } catch (e: SecurityException) {
             Log.e(TAG, "发送音量提醒通知失败，缺少通知权限", e)
         } catch (e: Exception) {

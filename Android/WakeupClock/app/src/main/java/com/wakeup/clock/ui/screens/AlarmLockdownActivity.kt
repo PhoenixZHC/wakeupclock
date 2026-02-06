@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.wakeup.clock.data.model.AlarmModel
 import com.wakeup.clock.data.model.Difficulty
 import com.wakeup.clock.manager.AlarmScheduler
 import com.wakeup.clock.service.AlarmService
@@ -46,6 +47,7 @@ class AlarmLockdownActivity : ComponentActivity() {
         setContent {
             val viewModel: AlarmViewModel = viewModel()
             val settings by viewModel.settings.collectAsState()
+            val alarms by viewModel.alarms.collectAsState()
             
             WakeupClockTheme(themeMode = settings.themeMode) {
                 AlarmLockdownScreen(
@@ -64,15 +66,15 @@ class AlarmLockdownActivity : ComponentActivity() {
                         // 停止闹钟服务
                         stopAlarmService()
                         
-                        // 只有普通闹钟才调度防赖床提醒
-                        // 如果是从防赖床超时触发的，完成任务后不再调度新的防赖床
+                        // 只有普通闹钟才调度防赖床提醒（与 iOS 一致：间隔从完成时刻起算，与其它闹钟冲突则跳过）
                         if (!isFromAntiSnoozeTimeout && settings.enableAntiSnooze) {
                             scheduleAntiSnoozeReminders(
                                 alarmId = alarmId,
                                 alarmLabel = alarmLabel,
                                 alarmDifficulty = alarmDifficultyValue,
                                 intervalMinutes = settings.antiSnoozeInterval,
-                                count = settings.antiSnoozeCount
+                                count = settings.antiSnoozeCount,
+                                allAlarms = alarms
                             )
                         }
                         
@@ -85,17 +87,23 @@ class AlarmLockdownActivity : ComponentActivity() {
     }
     
     /**
-     * 调度防赖床提醒
+     * 调度防赖床提醒（与 iOS 一致：与其它闹钟时间冲突的时段不排）
      */
     private fun scheduleAntiSnoozeReminders(
         alarmId: String,
         alarmLabel: String,
         alarmDifficulty: Int,
         intervalMinutes: Int,
-        count: Int
+        count: Int,
+        allAlarms: List<AlarmModel>
     ) {
+        val nowMs = System.currentTimeMillis()
         for (i in 1..count) {
             val delayMinutes = intervalMinutes * i
+            val triggerTimeMs = nowMs + delayMinutes * 60 * 1000L
+            // 与其它闹钟时间冲突则跳过该次提醒
+            val hasConflict = allAlarms.any { it.id != alarmId && alarmScheduler.wouldAlarmTriggerAt(it, triggerTimeMs) }
+            if (hasConflict) continue
             alarmScheduler.scheduleAntiSnoozeAlarm(
                 alarmId = alarmId,
                 label = alarmLabel,

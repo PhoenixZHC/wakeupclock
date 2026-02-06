@@ -25,6 +25,9 @@ class AlarmKitManager {
     private let alarmManager = AlarmKit.AlarmManager.shared
     private let soundResourceManager = AlarmSoundResourceManager.shared
     
+    /// UserDefaults 键：主闹钟 ID -> 其防赖床提醒的 AlarmKit ID 列表（删除主闹钟时用于只取消这些提醒，不影响其它闹钟）
+    private static let antiSnoozeReminderIdsKey = "WakeupClock.AntiSnoozeReminderIds"
+    
     private init() {
         Task {
             await checkAuthorization()
@@ -76,20 +79,16 @@ class AlarmKitManager {
         guard isAuthorized else {
             throw AlarmKitError.notAuthorized
         }
+        guard let alarmUUID = UUID(uuidString: alarm.id) else {
+            throw AlarmKitError.invalidAlarmId
+        }
         
-        // 先取消旧闹钟
-        try? alarmManager.cancel(id: UUID(uuidString: alarm.id)!)
-        
+        try? alarmManager.cancel(id: alarmUUID)
         guard alarm.enabled else { return }
         
-        // 根据重复模式创建 schedule
         let schedule = try createSchedule(for: alarm)
-        
-        // 创建 alarm configuration
         let config = try createAlarmConfiguration(for: alarm, schedule: schedule)
-        
-        // 调度闹钟
-        _ = try await alarmManager.schedule(id: UUID(uuidString: alarm.id)!, configuration: config)
+        _ = try await alarmManager.schedule(id: alarmUUID, configuration: config)
         
         #if DEBUG
         print("✅ AlarmKit 闹钟已调度: \(alarm.id) at \(alarm.time)")
@@ -103,6 +102,15 @@ class AlarmKitManager {
         
         #if DEBUG
         print("🗑️ AlarmKit 闹钟已取消: \(alarm.id)")
+        #endif
+    }
+    
+    /// 按 ID 取消单条闹钟（用于防赖床提醒完成后只取消该条）
+    func cancelAlarm(id: String) async throws {
+        guard let uuid = UUID(uuidString: id) else { return }
+        try alarmManager.cancel(id: uuid)
+        #if DEBUG
+        print("🗑️ AlarmKit 闹钟已取消: \(id)")
         #endif
     }
     
@@ -120,9 +128,11 @@ class AlarmKitManager {
     
     // MARK: - 防重新入睡功能
     
-    /// 调度防重新入睡提醒闹钟
+    /// 调度防赖床提醒（与主闹钟一样需完成任务才能停止；与其它闹钟时间冲突的时段不排）
+    /// 注意：调用时机的 now 即「用户完成主闹钟任务的时刻」，间隔由此刻起算，避免主闹钟还在做题时提醒就响
     func scheduleAntiSnoozeReminders(
         originalAlarmId: String,
+        allAlarms: [AlarmModel],
         intervalMinutes: Int,
         count: Int
     ) async throws {
@@ -130,118 +140,119 @@ class AlarmKitManager {
             throw AlarmKitError.notAuthorized
         }
         
-        let now = Date()
+        let now = Date() // 完成主闹钟任务的时刻，第一次提醒 = now + interval，第二次 = now + 2*interval
+        guard let originalAlarm = allAlarms.first(where: { $0.id == originalAlarmId }) else { return }
+        var scheduledCount = 0
         
         for index in 1...count {
-            // 计算触发时间
             let triggerTime = now.addingTimeInterval(TimeInterval(intervalMinutes * index * 60))
             
-            // 创建提醒配置
+            // 方案一：与其它闹钟时间冲突则跳过该次提醒
+            let hasConflict = allAlarms.contains { alarm in
+                alarm.id != originalAlarmId && alarm.shouldTrigger(on: triggerTime)
+            }
+            if hasConflict {
+                #if DEBUG
+                let formatter = DateFormatter()
+                formatter.dateFormat = "HH:mm"
+                formatter.timeZone = TimeZone.current
+                print("⏭️ 防赖床提醒跳过（与其它闹钟冲突）: \(formatter.string(from: triggerTime))")
+                #endif
+                continue
+            }
+            
+            scheduledCount += 1
+            let reminderUUID = UUID()
             let config = try createAntiSnoozeConfiguration(
                 originalAlarmId: originalAlarmId,
-                reminderIndex: index,
-                totalCount: count,
+                originalAlarmLabel: originalAlarm.label,
+                reminderAlarmId: reminderUUID.uuidString,
                 triggerTime: triggerTime
             )
-            
-            // 使用新的UUID调度提醒
-            let reminderUUID = UUID()
             _ = try await alarmManager.schedule(id: reminderUUID, configuration: config)
+            saveReminderId(reminderUUID.uuidString, forOriginalAlarmId: originalAlarmId)
             
             #if DEBUG
             let formatter = DateFormatter()
             formatter.dateFormat = "HH:mm:ss"
             formatter.timeZone = TimeZone.current
-            print("✅ 防重新入睡提醒 \(index)/\(count) 已调度: \(formatter.string(from: triggerTime))")
+            print("✅ 防赖床提醒 \(scheduledCount) 已调度: \(formatter.string(from: triggerTime))")
             #endif
         }
     }
     
-    /// 取消防重新入睡提醒
+    /// 取消防重新入睡提醒（仅取消该主闹钟关联的提醒，不影响其它主闹钟）
     func cancelAntiSnoozeReminders(originalAlarmId: String) async throws {
-        // 获取所有闹钟
-        let alarms = try alarmManager.alarms
-        
-        // 由于无法直接访问 Alarm 的 attributes，我们只能取消所有不是原始闹钟的闹钟
-        // 原始闹钟的 ID 应该是有效的 UUID 格式
-        guard let originalUUID = UUID(uuidString: originalAlarmId) else {
+        let reminderIds = consumeReminderIds(forOriginalAlarmId: originalAlarmId)
+        for id in reminderIds {
+            try? await cancelAlarm(id: id)
             #if DEBUG
-            print("⚠️ 无效的原始闹钟ID: \(originalAlarmId)")
+            print("🗑️ 取消防赖床提醒: \(id)")
             #endif
-            return
-        }
-        
-        // 取消所有非原始闹钟（即防重新入睡提醒）
-        for alarm in alarms {
-            if alarm.id != originalUUID {
-                try alarmManager.cancel(id: alarm.id)
-                #if DEBUG
-                print("🗑️ 取消防重新入睡提醒: \(alarm.id)")
-                #endif
-            }
         }
     }
     
-    /// 创建防重新入睡提醒配置
+    /// 将防赖床提醒 ID 存入 UserDefaults，便于删除主闹钟时只取消这些
+    private func saveReminderId(_ reminderId: String, forOriginalAlarmId originalAlarmId: String) {
+        var map = loadReminderIdsMap()
+        map[originalAlarmId, default: []].append(reminderId)
+        saveReminderIdsMap(map)
+    }
+    
+    /// 取出并清除该主闹钟对应的所有提醒 ID
+    private func consumeReminderIds(forOriginalAlarmId originalAlarmId: String) -> [String] {
+        var map = loadReminderIdsMap()
+        let ids = map.removeValue(forKey: originalAlarmId) ?? []
+        saveReminderIdsMap(map)
+        return ids
+    }
+    
+    private func loadReminderIdsMap() -> [String: [String]] {
+        guard let data = UserDefaults.standard.data(forKey: Self.antiSnoozeReminderIdsKey),
+              let decoded = try? JSONDecoder().decode([String: [String]].self, from: data) else {
+            return [:]
+        }
+        return decoded
+    }
+    
+    private func saveReminderIdsMap(_ map: [String: [String]]) {
+        guard let data = try? JSONEncoder().encode(map) else { return }
+        UserDefaults.standard.set(data, forKey: Self.antiSnoozeReminderIdsKey)
+    }
+    
+    /// 创建防重新入睡提醒配置（与主闹钟相同：解锁按钮，打开应用做任务才能停）
     private func createAntiSnoozeConfiguration(
         originalAlarmId: String,
-        reminderIndex: Int,
-        totalCount: Int,
+        originalAlarmLabel: String,
+        reminderAlarmId: String,
         triggerTime: Date
     ) throws -> AlarmKit.AlarmManager.AlarmConfiguration<WakeupAlarmMetadata> {
-        // 创建提醒标题和按钮文字
-        let titleKey: String
-        if reminderIndex == 1 {
-            titleKey = "antiSnoozeReminder1" // "还醒着吗？"
-        } else if reminderIndex == totalCount {
-            titleKey = "antiSnoozeReminderLast" // "最后确认"
-        } else {
-            titleKey = "antiSnoozeReminder" // "确认清醒"
-        }
-        
-        // 创建 alert presentation（只有一个"我醒了"按钮）
-        let awakeText: LocalizedStringResource = "我醒了"
+        let title = LocalizedString("alarm_msg_\(originalAlarmLabel)")
+        let unlockText: LocalizedStringResource = LocalizedStringResource(stringLiteral: LocalizedString("unlockAlarm"))
         let alertContent = AlarmPresentation.Alert(
-            title: LocalizedStringResource(stringLiteral: LocalizedString(titleKey)),
+            title: LocalizedStringResource(stringLiteral: title),
             stopButton: AlarmButton(
-                text: awakeText,
+                text: unlockText,
                 textColor: .white,
-                systemImageName: "checkmark.circle.fill"
+                systemImageName: "lock.open.fill"
             )
         )
-        
         let presentation = AlarmPresentation(alert: alertContent)
-        
-        // 创建 attributes
         let attributes = AlarmAttributes(
             presentation: presentation,
-            metadata: WakeupAlarmMetadata(alarmLabel: "antiSnooze"),
+            metadata: WakeupAlarmMetadata(alarmLabel: originalAlarmLabel),
             tintColor: Color.orange
         )
-        
-        // 创建确认清醒意图
-        let confirmIntent = ConfirmAwakeAppIntent(
-            originalAlarmId: originalAlarmId,
-            reminderIndex: reminderIndex
-        )
-        
-        // 随机选择一个自定义声音
+        // 打开应用并显示原闹钟的任务；完成时只取消本条提醒
+        let unlockIntent = ViewAlarmAppIntent(alarmId: originalAlarmId, reminderAlarmId: reminderAlarmId)
         let selectedSound = AlarmSound.randomAvailable()
         let customSound = getAlarmSound(for: selectedSound)
-        
-        // 创建配置（使用固定时间和自定义声音）
-        let config = AlarmKit.AlarmManager.AlarmConfiguration(
+        return AlarmKit.AlarmManager.AlarmConfiguration(
             schedule: .fixed(triggerTime),
             attributes: attributes,
-            stopIntent: confirmIntent,
+            stopIntent: unlockIntent,
             sound: customSound
         )
-        
-        #if DEBUG
-        print("🔊 防重新入睡提醒 \(reminderIndex) 使用声音: \(selectedSound.displayName)")
-        #endif
-        
-        return config
     }
     
     // MARK: - 私有辅助方法
@@ -256,25 +267,26 @@ class AlarmKitManager {
         
         switch alarm.repeatModeEnum {
         case .once:
-            // 响一次：使用固定日期
             var components = calendar.dateComponents([.year, .month, .day], from: Date())
             components.hour = hour
             components.minute = minute
             components.second = 0
-            
             guard let triggerDate = calendar.date(from: components) else {
                 throw AlarmKitError.invalidDate
             }
-            
-            // 如果时间已过，设置为明天
-            let finalDate = triggerDate > Date() ? triggerDate : calendar.date(byAdding: .day, value: 1, to: triggerDate)!
-            
+            let finalDate = triggerDate > Date() ? triggerDate : (calendar.date(byAdding: .day, value: 1, to: triggerDate) ?? triggerDate)
             return .fixed(finalDate)
             
         case .workdays, .custom:
-            // 工作日或自定义：使用 relative schedule
-            let time = Alarm.Schedule.Relative.Time(hour: hour, minute: minute)
+            if alarm.skipHolidays {
+                // 跳过节假日：只排「下一个合法日期」的 fixed，实际响铃由节假日决定
+                guard let nextDate = nextValidTriggerDate(for: alarm) else {
+                    throw AlarmKitError.invalidDate
+                }
+                return .fixed(nextDate)
+            }
             
+            let time = Alarm.Schedule.Relative.Time(hour: hour, minute: minute)
             let weekdays: [Locale.Weekday]
             if alarm.repeatModeEnum == .workdays {
                 weekdays = [.monday, .tuesday, .wednesday, .thursday, .friday]
@@ -292,13 +304,30 @@ class AlarmKitManager {
                     }
                 }
             }
-            
             if weekdays.isEmpty {
                 throw AlarmKitError.noWeekdaysSelected
             }
-            
             return .relative(.init(time: time, repeats: .weekly(weekdays)))
         }
+    }
+    
+    /// 跳过节假日时：计算下一个应响铃的日期（匹配星期且非节假日）
+    private func nextValidTriggerDate(for alarm: AlarmModel) -> Date? {
+        guard let (hour, minute) = alarm.timeComponents else { return nil }
+        let calendar = Calendar.current
+        let now = Date()
+        for dayOffset in 0..<60 {
+            guard let day = calendar.date(byAdding: .day, value: dayOffset, to: now) else { continue }
+            var comps = calendar.dateComponents([.year, .month, .day], from: day)
+            comps.hour = hour
+            comps.minute = minute
+            comps.second = 0
+            guard let trigger = calendar.date(from: comps), trigger > now else { continue }
+            if alarm.shouldTrigger(on: trigger) {
+                return trigger
+            }
+        }
+        return nil
     }
     
     /// 创建 alarm configuration
@@ -387,6 +416,7 @@ enum AlarmKitError: Error, LocalizedError {
     case invalidTime
     case invalidDate
     case noWeekdaysSelected
+    case invalidAlarmId
     
     var errorDescription: String? {
         switch self {
@@ -398,6 +428,8 @@ enum AlarmKitError: Error, LocalizedError {
             return "无效的日期"
         case .noWeekdaysSelected:
             return "未选择任何星期"
+        case .invalidAlarmId:
+            return "无效的闹钟 ID"
         }
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wakeup.clock.BuildConfig
 import com.wakeup.clock.R
 import com.wakeup.clock.data.model.AppSettings
 import com.wakeup.clock.data.model.ThemeMode
@@ -308,6 +309,7 @@ fun SettingsScreen(
                             // 更新音量管理器
                             val volumeManager = com.wakeup.clock.manager.VolumeCheckManager.getInstance(context)
                             if (it) {
+                                volumeManager.ensureVolumeReminderChannel() // 前台创建渠道，避免 OPPO/ColorOS 后台创建时降级
                                 volumeManager.startMonitoring()
                                 volumeManager.scheduleDailyCheck(newSettings)
                             } else {
@@ -363,6 +365,32 @@ fun SettingsScreen(
                                 showTimePicker = false
                             }
                         )
+                    }
+                    
+                    // 部分机型需在系统通知里单独开启「睡前提醒」的声音与锁屏
+                    Text(
+                        text = stringResource(R.string.volume_reminder_open_notification_settings),
+                        color = if (isDark) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.7f),
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    TextButton(
+                        onClick = {
+                            val intent = Intent().apply {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                    action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                } else {
+                                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                                    data = Uri.parse("package:${context.packageName}")
+                                }
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            try { context.startActivity(intent) } catch (_: Exception) { }
+                        },
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Text(stringResource(R.string.open_notification_settings), color = Purple500)
                     }
                 }
             }
@@ -441,7 +469,7 @@ fun SettingsScreen(
                         color = if (isDark) Color.White else Color.Black
                     )
                     Text(
-                        text = "1.0.0",
+                        text = BuildConfig.VERSION_NAME,
                         color = Color.Gray
                     )
                 }

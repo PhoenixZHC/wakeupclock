@@ -11,14 +11,16 @@ import Foundation
 import AVFoundation
 import UserNotifications
 import Combine
+import MediaPlayer
+import UIKit
 
 /// 音量检测管理器（单例）
 @MainActor
 class VolumeCheckManager: ObservableObject {
     static let shared = VolumeCheckManager()
     
-    /// 音量过低的阈值（低于 30% 认为过低）
-    private let lowVolumeThreshold: Float = 0.3
+    /// 音量过低的阈值（低于 50% 认为过低）
+    private let lowVolumeThreshold: Float = 0.5
     
     /// 是否显示音量过低警告
     @Published var showLowVolumeAlert: Bool = false
@@ -56,6 +58,87 @@ class VolumeCheckManager: ObservableObject {
         #endif
         
         return isLow
+    }
+    
+    /// 将系统媒体音量设为指定比例（0.0–1.0）
+    /// 通过 MPVolumeView 内嵌的 UISlider 实现，无公开 API 直接设置系统音量
+    /// 注意：iOS 可能限制程序化设置音量，此方法可能不总是生效
+    func setSystemVolume(to targetVolume: Float) {
+        let clamped = max(0, min(1, targetVolume))
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = windowScene.windows.first(where: { $0.isKeyWindow }) else {
+            #if DEBUG
+            print("⚠️ 未找到 keyWindow，无法设置系统音量")
+            #endif
+            return
+        }
+        
+        let volumeView = MPVolumeView(frame: CGRect(x: -1000, y: -1000, width: 1, height: 1))
+        volumeView.isHidden = true
+        window.addSubview(volumeView)
+        
+        // 等待 view 初始化并查找 slider
+        Task { @MainActor in
+            // 多次尝试查找 slider（有时需要更长时间加载）
+            var foundSlider: UISlider?
+            for attempt in 0..<5 {
+                try? await Task.sleep(nanoseconds: 50_000_000 * UInt64(attempt + 1)) // 50ms, 100ms, 150ms...
+                
+                // 方法1：查找 MPVolumeSlider（系统私有类名）
+                for subview in volumeView.subviews {
+                    let className = NSStringFromClass(type(of: subview))
+                    if className.contains("MPVolumeSlider") || className.contains("VolumeSlider") {
+                        foundSlider = subview as? UISlider
+                        break
+                    }
+                }
+                
+                // 方法2：回退到通用 UISlider 查找
+                if foundSlider == nil {
+                    for subview in volumeView.subviews {
+                        if let slider = subview as? UISlider {
+                            foundSlider = slider
+                            break
+                        }
+                    }
+                }
+                
+                if foundSlider != nil { break }
+            }
+            
+            guard let slider = foundSlider else {
+                #if DEBUG
+                print("⚠️ 未找到 MPVolumeView 的 slider，无法设置音量")
+                #endif
+                volumeView.removeFromSuperview()
+                return
+            }
+            
+            // 先读取当前值，确保 slider 已初始化
+            let currentVal = slider.value
+            #if DEBUG
+            print("🔊 Slider 当前值: \(Int(currentVal * 100))%，目标: \(Int(clamped * 100))%")
+            #endif
+            
+            // 设置新值（多次尝试，确保生效）
+            slider.setValue(clamped, animated: false)
+            slider.value = clamped // 双重设置
+            slider.sendActions(for: .valueChanged)
+            
+            // 等待系统处理并验证
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 秒
+            currentVolume = getCurrentVolume()
+            let actualVal = slider.value
+            
+            #if DEBUG
+            print("🔊 设置后 - Slider值: \(Int(actualVal * 100))%，系统音量: \(Int(currentVolume * 100))%")
+            if abs(currentVolume - clamped) > 0.05 {
+                print("⚠️ 音量设置可能未生效，iOS 可能限制了程序化音量调整")
+            }
+            #endif
+            
+            volumeView.removeFromSuperview()
+        }
     }
     
     // MARK: - 睡前定时提醒

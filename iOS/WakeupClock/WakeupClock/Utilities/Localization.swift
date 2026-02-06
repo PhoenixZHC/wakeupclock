@@ -81,6 +81,8 @@ class Translations {
             "repeatWorkdays": "工作日",
             "repeatCustom": "自定义",
             "selectDaysLabel": "选择日期",
+            "customDaysRequired": "请选择日期",
+            "customDaysRequiredMessage": "自定义重复时至少需要选择一天",
             "skipHolidaysLabel": "法定节假日不响铃",
             "skipHolidaysDesc": "智能跳过国家法定假期",
             "cancel": "取消",
@@ -175,6 +177,8 @@ class Translations {
             "guideTip7Desc": "闹钟触发时，点击\"解锁闹钟\"按钮会打开应用并开始解锁任务。必须完成任务才能关闭闹钟。",
             "guideTip8Title": "建议充电过夜",
             "guideTip8Desc": "虽然系统闹钟很可靠，但低电量可能导致设备自动关机。建议睡前给设备充电。",
+            "guideTip9Title": "请用「解锁闹钟」进入任务",
+            "guideTip9Desc": "请通过「解锁闹钟」按钮进入任务界面。若用锁屏滑动或音量键直接关闭闹钟，可能不会打开本应用，任务会被跳过；若已关闭可重新打开应用，按提示选择「去完成任务」。",
             "systemLimitations": "iOS 26 AlarmKit 技术说明",
             "systemLimitationsDesc": "本应用采用 Apple 在 iOS 26 中推出的系统级闹钟框架 AlarmKit。相比传统的通知方式，系统闹钟拥有更高的优先级和可靠性，能够突破静音、勿扰等限制。这项技术与系统自带的\"时钟\"应用使用相同的底层机制，确保您的重要事项不会被遗漏。\\n\\n注意：本应用仅支持 iOS 26.0 及以上系统版本。",
             "calendarError": "无法加载日历",
@@ -226,7 +230,14 @@ class Translations {
             "volumeReminderTime": "提醒时间",
             // 音量过低警告
             "lowVolumeAlertTitle": "音量较低",
-            "lowVolumeAlertMessage": "当前手机音量较低，可能会影响闹钟唤醒效果，建议调高音量",
+            "lowVolumeAlertMessage": "检测到音量过低，是否帮您自动调整音量？",
+            "lowVolumeAlertAutoAdjust": "调至 70%",
+            "lowVolumeAlertDismiss": "暂不",
+            "recentAlarmRecoveryTitle": "闹钟可能刚响过",
+            "recentAlarmRecoveryMessage": "若您通过滑动或音量键关闭了闹钟，可能未进入任务。是否现在完成任务？",
+            "recentAlarmRecoveryYes": "去完成任务",
+            "recentAlarmRecoveryNo": "不需要",
+            "alarmDismissTip": "请通过「解锁闹钟」按钮进入任务，勿用滑动或音量键直接关闭，否则可能无法进入任务界面。",
             "ok": "知道了"
         ],
         "en": [
@@ -246,6 +257,8 @@ class Translations {
             "repeatWorkdays": "Workdays",
             "repeatCustom": "Custom",
             "selectDaysLabel": "Select Days",
+            "customDaysRequired": "Select at least one day",
+            "customDaysRequiredMessage": "When using custom repeat, you must select at least one day",
             "skipHolidaysLabel": "Skip Public Holidays",
             "skipHolidaysDesc": "Auto skip national holidays",
             "cancel": "Cancel",
@@ -340,6 +353,8 @@ class Translations {
             "guideTip7Desc": "When alarm rings, tap 'Unlock Alarm' button to open app and start unlock mission. Must complete mission to stop alarm.",
             "guideTip8Title": "Recommend Charging Overnight",
             "guideTip8Desc": "Although system alarms are reliable, low battery may cause automatic shutdown. Recommend charging device before sleep.",
+            "guideTip9Title": "Use \"Unlock Alarm\" to open task",
+            "guideTip9Desc": "Use the \"Unlock Alarm\" button to open the task. Sliding on the lock screen or using volume keys may dismiss the alarm without opening the app. If that happens, open the app and choose \"Go to task\" when prompted.",
             "systemLimitations": "iOS 26 AlarmKit Technology",
             "systemLimitationsDesc": "This app uses AlarmKit, the system-level alarm framework introduced by Apple in iOS 26. Compared to traditional notifications, system alarms have higher priority and reliability, capable of overriding Silent and Do Not Disturb modes. This technology uses the same underlying mechanism as the built-in Clock app, ensuring your important events are never missed.\\n\\nNote: This app requires iOS 26.0 or later.",
             "calendarError": "Cannot load calendar",
@@ -391,7 +406,14 @@ class Translations {
             "volumeReminderTime": "Reminder Time",
             // Low volume alert
             "lowVolumeAlertTitle": "Low Volume",
-            "lowVolumeAlertMessage": "Your phone volume is low, which may affect alarm effectiveness. Please consider increasing the volume.",
+            "lowVolumeAlertMessage": "Volume is low. Would you like to adjust it to 70% automatically?",
+            "lowVolumeAlertAutoAdjust": "Set to 70%",
+            "lowVolumeAlertDismiss": "No thanks",
+            "recentAlarmRecoveryTitle": "Alarm may have just rung",
+            "recentAlarmRecoveryMessage": "If you dismissed the alarm by sliding or using the volume key, the task screen may not have opened. Complete the task now?",
+            "recentAlarmRecoveryYes": "Go to task",
+            "recentAlarmRecoveryNo": "No",
+            "alarmDismissTip": "Use the \"Unlock Alarm\" button to open the task. Sliding or volume keys may dismiss the alarm without opening the app.",
             "ok": "OK"
         ]
     ]

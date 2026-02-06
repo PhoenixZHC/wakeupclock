@@ -61,8 +61,8 @@ final class AppSettings {
     /// 启用音量提醒功能
     var enableVolumeReminder: Bool = false
     
-    /// 音量提醒阈值（0.0-1.0，低于此值会提醒）
-    var volumeReminderThreshold: Double = 0.3
+    /// 音量提醒阈值（0.0-1.0，低于此值会提醒；与 Android 一致用 0.5）
+    var volumeReminderThreshold: Double = 0.5
     
     /// 音量提醒时间（小时，默认21点即晚上9点）
     var volumeReminderHour: Int = 21
@@ -83,7 +83,7 @@ final class AppSettings {
         antiSnoozeCount: Int = 2,
         hasAcceptedSafetyNotice: Bool = false,
         enableVolumeReminder: Bool = false,
-        volumeReminderThreshold: Double = 0.3,
+        volumeReminderThreshold: Double = 0.5,
         volumeReminderHour: Int = 21,
         volumeReminderMinute: Int = 0
     ) {

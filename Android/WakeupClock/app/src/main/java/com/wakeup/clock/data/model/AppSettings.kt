@@ -26,11 +26,11 @@ data class AppSettings(
     /** 语言 (zh, en) */
     val language: String = "zh",
     
-    /** 是否启用防赖床模式 */
-    val enableAntiSnooze: Boolean = false,
+    /** 是否启用防赖床模式（与 iOS 一致，默认开启） */
+    val enableAntiSnooze: Boolean = true,
     
-    /** 防赖床提醒间隔（分钟） */
-    val antiSnoozeInterval: Int = 5,
+    /** 防赖床提醒间隔（分钟，默认 3 与 iOS 一致） */
+    val antiSnoozeInterval: Int = 3,
     
     /** 防赖床提醒次数 */
     val antiSnoozeCount: Int = 2,
@@ -41,8 +41,8 @@ data class AppSettings(
     /** 是否启用音量提醒功能 */
     val enableVolumeReminder: Boolean = false,
     
-    /** 音量提醒阈值（0.0-1.0，低于此值会提醒） */
-    val volumeReminderThreshold: Float = 0.3f,
+    /** 音量提醒阈值（0.0-1.0，低于此值会提醒；默认 50% 与 iOS 一致） */
+    val volumeReminderThreshold: Float = 0.5f,
     
     /** 音量提醒时间（小时，默认21点即晚上9点） */
     val volumeReminderHour: Int = 21,

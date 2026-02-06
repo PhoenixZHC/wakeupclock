@@ -233,6 +233,12 @@ struct UsageGuideView: View {
                                 title: LocalizedString("guideTip8Title"),
                                 description: LocalizedString("guideTip8Desc"),
                                 iconColor: .orange
+                            ),
+                            GuideTip(
+                                icon: "hand.tap.fill",
+                                title: LocalizedString("guideTip9Title"),
+                                description: LocalizedString("guideTip9Desc"),
+                                iconColor: .orange
                             )
                         ]
                     )

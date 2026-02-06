@@ -147,25 +147,31 @@ class AlarmScheduler(private val context: Context) {
     }
     
     /**
-     * 取消防赖床提醒
+     * 取消单条防赖床提醒（用户确认当前这一次后只取消本条，其余提醒仍按时响）
+     */
+    fun cancelAntiSnoozeAlarm(alarmId: String, reminderIndex: Int) {
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            action = ACTION_ALARM_TRIGGER
+        }
+        val requestCode = "${alarmId}_anti_$reminderIndex".hashCode()
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(pendingIntent)
+        Log.d(TAG, "Cancelled anti-snooze reminder #$reminderIndex for $alarmId")
+    }
+
+    /**
+     * 取消该闹钟的全部防赖床提醒（删除/关闭闹钟时调用）
      */
     fun cancelAntiSnoozeAlarms(alarmId: String, count: Int) {
         for (i in 1..count) {
-            val intent = Intent(context, AlarmReceiver::class.java).apply {
-                action = ACTION_ALARM_TRIGGER
-            }
-            
-            val requestCode = "${alarmId}_anti_$i".hashCode()
-            val pendingIntent = PendingIntent.getBroadcast(
-                context,
-                requestCode,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
-            
-            alarmManager.cancel(pendingIntent)
+            cancelAntiSnoozeAlarm(alarmId, i)
         }
-        Log.d(TAG, "Cancelled anti-snooze alarms for $alarmId")
+        Log.d(TAG, "Cancelled all anti-snooze alarms for $alarmId")
     }
     
     /**
@@ -237,6 +243,42 @@ class AlarmScheduler(private val context: Context) {
         
         return null
     }
+    
+    /**
+     * 判断闹钟是否会在指定时刻触发（与 iOS shouldTrigger(on:) 一致，用于防赖床冲突检测）
+     */
+    fun wouldAlarmTriggerAt(alarm: AlarmModel, timeMillis: Long): Boolean {
+        if (!alarm.enabled) return false
+        val (hour, minute) = alarm.timeComponents ?: return false
+        val cal = Calendar.getInstance().apply { timeInMillis = timeMillis }
+        if (cal.get(Calendar.HOUR_OF_DAY) != hour || cal.get(Calendar.MINUTE) != minute) return false
+        when (alarm.repeatMode) {
+            RepeatMode.ONCE -> {
+                val creationCal = Calendar.getInstance().apply { timeInMillis = alarm.createdAt }
+                if (sameDay(cal, creationCal)) return true
+                val nextDay = Calendar.getInstance().apply {
+                    timeInMillis = creationCal.timeInMillis
+                    add(Calendar.DAY_OF_MONTH, 1)
+                }
+                return sameDay(cal, nextDay)
+            }
+            RepeatMode.WORKDAYS -> {
+                val dow = cal.get(Calendar.DAY_OF_WEEK)
+                if (dow !in Calendar.MONDAY..Calendar.FRIDAY) return false
+            }
+            RepeatMode.CUSTOM -> {
+                if (alarm.customDays.isEmpty()) return false
+                val dayIndex = if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) 0 else cal.get(Calendar.DAY_OF_WEEK) - 1
+                if (!alarm.customDays.contains(dayIndex)) return false
+            }
+        }
+        if (alarm.skipHolidays && HolidayChecker.shouldSkipAlarm(cal.time)) return false
+        return true
+    }
+    
+    private fun sameDay(a: Calendar, b: Calendar): Boolean =
+        a.get(Calendar.YEAR) == b.get(Calendar.YEAR) &&
+        a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)
     
     /**
      * 获取倒计时文本

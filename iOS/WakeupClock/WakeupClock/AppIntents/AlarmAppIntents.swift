@@ -16,49 +16,50 @@ import AlarmKit
 enum PendingAlarmManager {
     private static let pendingAlarmKey = "PendingAlarmId"
     private static let pendingAlarmTimeKey = "PendingAlarmTime"
+    private static let pendingReminderAlarmIdKey = "PendingReminderAlarmId"
     
-    /// 设置待处理的闹钟
-    static func setPendingAlarm(id: String) {
+    /// 设置待处理的闹钟（主闹钟或防赖床提醒）
+    static func setPendingAlarm(id: String, reminderId: String? = nil) {
         UserDefaults.standard.set(id, forKey: pendingAlarmKey)
         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: pendingAlarmTimeKey)
-        
+        if let rid = reminderId {
+            UserDefaults.standard.set(rid, forKey: pendingReminderAlarmIdKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: pendingReminderAlarmIdKey)
+        }
         #if DEBUG
-        print("💾 保存待处理闹钟: \(id)")
+        print("💾 保存待处理闹钟: \(id)" + (reminderId != nil ? ", 提醒ID: \(reminderId!)" : ""))
         #endif
     }
     
     /// 获取并清除待处理的闹钟（2分钟内有效）
-    static func consumePendingAlarm() -> String? {
+    static func consumePendingAlarm() -> (alarmId: String?, reminderAlarmId: String?) {
         guard let alarmId = UserDefaults.standard.string(forKey: pendingAlarmKey),
               let timestamp = UserDefaults.standard.object(forKey: pendingAlarmTimeKey) as? TimeInterval else {
-            return nil
+            return (nil, nil)
         }
-        
-        // 检查是否在 2 分钟内
         let elapsed = Date().timeIntervalSince1970 - timestamp
-        guard elapsed <= 120 else {
-            // 超时，清除
+        let timeout: TimeInterval = 300 // 5 分钟，给用户更多时间从锁屏/后台打开应用
+        guard elapsed <= timeout else {
             clearPendingAlarm()
             #if DEBUG
             print("⏰ 待处理闹钟已超时，已清除")
             #endif
-            return nil
+            return (nil, nil)
         }
-        
-        // 清除并返回
+        let reminderId = UserDefaults.standard.string(forKey: pendingReminderAlarmIdKey)
         clearPendingAlarm()
-        
         #if DEBUG
-        print("📤 消费待处理闹钟: \(alarmId)")
+        print("📤 消费待处理闹钟: \(alarmId)" + (reminderId != nil ? ", 提醒ID: \(reminderId!)" : ""))
         #endif
-        
-        return alarmId
+        return (alarmId, reminderId)
     }
     
     /// 清除待处理的闹钟
     static func clearPendingAlarm() {
         UserDefaults.standard.removeObject(forKey: pendingAlarmKey)
         UserDefaults.standard.removeObject(forKey: pendingAlarmTimeKey)
+        UserDefaults.standard.removeObject(forKey: pendingReminderAlarmIdKey)
     }
     
     /// 检查是否有待处理的闹钟（不消费）
@@ -67,9 +68,8 @@ enum PendingAlarmManager {
               let timestamp = UserDefaults.standard.object(forKey: pendingAlarmTimeKey) as? TimeInterval else {
             return false
         }
-        
         let elapsed = Date().timeIntervalSince1970 - timestamp
-        return elapsed <= 120
+        return elapsed <= 300
     }
 }
 
@@ -84,16 +84,21 @@ struct ViewAlarmAppIntent: LiveActivityIntent {
     @Parameter(title: "闹钟ID")
     var alarmId: String
     
-    init(alarmId: String) {
+    /// 防赖床提醒的 AlarmKit UUID；非空表示本次是防赖床提醒，完成任务后只取消此条
+    @Parameter(title: "提醒闹钟ID")
+    var reminderAlarmId: String?
+    
+    init(alarmId: String, reminderAlarmId: String? = nil) {
         self.alarmId = alarmId
+        self.reminderAlarmId = reminderAlarmId
     }
     
     init() {
         self.alarmId = ""
+        self.reminderAlarmId = nil
     }
     
     func perform() async throws -> some IntentResult {
-        // 验证 alarmId 不为空
         guard !alarmId.isEmpty else {
             #if DEBUG
             print("⚠️ ViewAlarmAppIntent: alarmId 为空")
@@ -101,22 +106,26 @@ struct ViewAlarmAppIntent: LiveActivityIntent {
             return .result()
         }
         
-        // 先保存到 UserDefaults，确保即使应用未完全启动也不会丢失
-        await PendingAlarmManager.setPendingAlarm(id: alarmId)
+        await PendingAlarmManager.setPendingAlarm(id: alarmId, reminderId: reminderAlarmId)
         
         #if DEBUG
-        print("🔔 ViewAlarmAppIntent 执行: \(alarmId)")
+        print("🔔 ViewAlarmAppIntent 执行: \(alarmId)" + (reminderAlarmId != nil ? ", 提醒ID: \(reminderAlarmId!)" : ""))
         #endif
         
-        // 延迟发送通知，给应用一点时间初始化
-        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 秒
+        try? await Task.sleep(nanoseconds: 100_000_000)
         
-        // 发送通知（如果应用已在前台运行）
+        // 在 MainActor 闭包外构建 userInfo，避免 Swift 6 并发捕获可变变量的问题
+        let finalAlarmId = alarmId
+        let finalReminderAlarmId = reminderAlarmId
         await MainActor.run {
+            var userInfo: [String: Any] = ["alarmId": finalAlarmId]
+            if let rid = finalReminderAlarmId {
+                userInfo["reminderAlarmId"] = rid
+            }
             NotificationCenter.default.post(
                 name: .alarmTriggeredFromAlarmKit,
                 object: nil,
-                userInfo: ["alarmId": alarmId]
+                userInfo: userInfo
             )
         }
         

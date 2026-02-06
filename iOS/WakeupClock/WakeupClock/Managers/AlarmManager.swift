@@ -80,10 +80,13 @@ class AlarmManager: ObservableObject {
             try modelContext.save()
             loadAlarms()
             
-            // 使用 AlarmKit 更新
+            // 使用 AlarmKit 更新；关闭闹钟时一并取消防赖床提醒
             Task {
                 if #available(iOS 26.0, *) {
                     try? await AlarmKitManager.shared.scheduleAlarm(alarm)
+                    if !alarm.enabled {
+                        try? await AlarmKitManager.shared.cancelAntiSnoozeReminders(originalAlarmId: alarm.id)
+                    }
                 }
             }
         } catch {
@@ -93,26 +96,26 @@ class AlarmManager: ObservableObject {
         }
     }
     
-    /// 删除闹钟
+    /// 删除闹钟（先取消 AlarmKit、其防赖床提醒与本地通知再删库，避免残留响铃）
     func deleteAlarm(_ alarm: AlarmModel) {
         guard let modelContext = modelContext else { return }
-        
-        // 取消 AlarmKit 闹钟
         Task {
             if #available(iOS 26.0, *) {
                 try? await AlarmKitManager.shared.cancelAlarm(alarm)
+                try? await AlarmKitManager.shared.cancelAntiSnoozeReminders(originalAlarmId: alarm.id)
             }
-        }
-        
-        modelContext.delete(alarm)
-        
-        do {
-            try modelContext.save()
-            loadAlarms()
-        } catch {
-            #if DEBUG
-            print("删除闹钟失败: \(error)")
-            #endif
+            NotificationManager.shared.cancelAlarm(alarm)
+            await MainActor.run {
+                modelContext.delete(alarm)
+                do {
+                    try modelContext.save()
+                    loadAlarms()
+                } catch {
+                    #if DEBUG
+                    print("删除闹钟失败: \(error)")
+                    #endif
+                }
+            }
         }
     }
     
@@ -120,6 +123,19 @@ class AlarmManager: ObservableObject {
     func toggleAlarm(_ alarm: AlarmModel) {
         alarm.enabled.toggle()
         updateAlarm(alarm)
+    }
+    
+    /// 刷新所有「跳过节假日」闹钟的下次响铃日期（应用启动/前台时调用，确保节假日不响）
+    func refreshSkipHolidaysAlarms() {
+        let toRefresh = alarms.filter { $0.enabled && $0.skipHolidays }
+        guard !toRefresh.isEmpty else { return }
+        Task {
+            if #available(iOS 26.0, *) {
+                for alarm in toRefresh {
+                    try? await AlarmKitManager.shared.scheduleAlarm(alarm)
+                }
+            }
+        }
     }
     
     // MARK: - 辅助方法

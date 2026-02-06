@@ -134,8 +134,11 @@ final class AlarmModel {
         // 检查重复模式
         switch repeatModeEnum {
         case .once:
-            // 只响一次，检查是否是创建日期
-            return calendar.isDate(createdAt, inSameDayAs: date)
+            // 只响一次：允许「创建日」或「创建日+1」（与 createSchedule 中“今天或明天”一致，保证首页/防赖床冲突正确）
+            if calendar.isDate(createdAt, inSameDayAs: date) { return true }
+            guard let creationStart = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: createdAt),
+                  let nextDay = calendar.date(byAdding: .day, value: 1, to: creationStart) else { return false }
+            return calendar.isDate(nextDay, inSameDayAs: date)
             
         case .workdays:
             // 工作日：周一到周五

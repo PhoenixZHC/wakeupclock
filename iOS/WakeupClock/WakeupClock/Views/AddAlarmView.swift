@@ -16,6 +16,7 @@ struct AddAlarmView: View {
     @State private var repeatMode: RepeatMode = .workdays
     @State private var customDays: Set<Int> = [1, 2, 3, 4, 5]
     @State private var skipHolidays = false
+    @State private var showCustomDaysRequiredAlert = false
     
     let categories = [
         ("work", "briefcase.fill", "label_work"),
@@ -32,7 +33,7 @@ struct AddAlarmView: View {
     var body: some View {
         NavigationView {
             Form {
-                // 时间选择
+                // 时间选择（强制 24 小时制，避免 12 小时制下「12 点」被当成午夜 12:00 AM）
                 Section {
                     DatePicker(
                         LocalizedString("timeLabel"),
@@ -40,6 +41,7 @@ struct AddAlarmView: View {
                         displayedComponents: .hourAndMinute
                     )
                     .datePickerStyle(.compact)
+                    .environment(\.locale, Locale(identifier: "en_GB")) // 使用 24 小时制，12:00 明确表示中午
                     .frame(maxWidth: 200)
                 }
                 
@@ -112,6 +114,11 @@ struct AddAlarmView: View {
                     .fontWeight(.semibold)
                 }
             }
+            .alert(LocalizedString("customDaysRequired"), isPresented: $showCustomDaysRequiredAlert) {
+                Button(LocalizedString("ok")) { }
+            } message: {
+                Text(LocalizedString("customDaysRequiredMessage"))
+            }
         }
     }
     
@@ -181,7 +188,12 @@ struct AddAlarmView: View {
     }
     
     private func saveAlarm() {
+        if repeatMode == .custom && customDays.isEmpty {
+            showCustomDaysRequiredAlert = true
+            return
+        }
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_GB")
         formatter.dateFormat = "HH:mm"
         let timeString = formatter.string(from: selectedTime)
         
@@ -198,5 +210,18 @@ struct AddAlarmView: View {
         
         alarmManager.addAlarm(alarm)
         dismiss()
+    }
+    
+    /// 从 "HH:mm" 反解为当天该时刻的 Date（24 小时制，供编辑闹钟时预填时间使用）
+    static func date(from timeString: String) -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_GB")
+        formatter.dateFormat = "HH:mm"
+        guard let date = formatter.date(from: timeString) else { return nil }
+        let cal = Calendar.current
+        var comps = cal.dateComponents([.year, .month, .day], from: Date())
+        comps.hour = cal.component(.hour, from: date)
+        comps.minute = cal.component(.minute, from: date)
+        return cal.date(from: comps)
     }
 }

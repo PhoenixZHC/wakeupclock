@@ -196,6 +196,13 @@
     <string name="volume_reminder_time">Reminder Time</string>
     <string name="volume_reminder_channel_name">Bedtime Reminder</string>
     <string name="volume_reminder_channel_desc">Bedtime volume reminder notifications</string>
+    <string name="volume_reminder_open_notification_settings">If you don\'t get sound or lock screen alert, open notification settings and enable sound &amp; lock screen for \"Bedtime Reminder\"</string>
+    <string name="open_notification_settings">Open Notification Settings</string>
+    <string name="volume_auto_adjust_70">Set to 70%</string>
+    <!-- Low volume alert when opening app (same as iOS) -->
+    <string name="low_volume_alert_title">Low Volume</string>
+    <string name="low_volume_alert_message">Volume is low. Would you like to adjust it to 70% automatically?</string>
+    <string name="low_volume_alert_dismiss">No thanks</string>
     
     <!-- Background Protection -->
     <string name="background_protection_title">Background Protection</string>

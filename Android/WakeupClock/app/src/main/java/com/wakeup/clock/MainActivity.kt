@@ -34,7 +34,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -104,33 +107,43 @@ class MainActivity : ComponentActivity() {
                 val showVolumeWarning by volumeManager.showVolumeWarningDialog.collectAsState()
                 val volumeWarningInfo by volumeManager.volumeWarningInfo.collectAsState()
                 
-                // 初始化音量检测
+                // 初始化音量检测（定时与监听）；前台音量检测统一在 ON_RESUME 中做，与 iOS 一致
                 LaunchedEffect(settings.enableVolumeReminder) {
                     if (settings.enableVolumeReminder) {
+                        volumeManager.ensureVolumeReminderChannel() // 前台创建渠道，避免 OPPO/ColorOS 后台创建时降级
                         volumeManager.startMonitoring()
                         volumeManager.scheduleDailyCheck(settings)
-                        // 打开 App 时立即检查音量（显示弹窗而非通知）
-                        volumeManager.checkVolumeInApp(settings)
                     } else {
                         volumeManager.stopMonitoring()
                     }
                 }
+                // 每次打开应用/回到前台都检测音量，低于 50% 弹窗（与「睡前提醒」设置无关，10 秒防抖）
+                val lifecycleOwner = LocalLifecycleOwner.current
+                DisposableEffect(lifecycleOwner) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) {
+                            volumeManager.checkVolumeOnAppOpen()
+                        }
+                    }
+                    lifecycleOwner.lifecycle.addObserver(observer)
+                    if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                        volumeManager.checkVolumeOnAppOpen()
+                    }
+                    onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+                }
+                // 设置加载后若已 RESUMED，补跑一次打开应用检测（不依赖「睡前提醒」开关）
+                LaunchedEffect(Unit) {
+                    if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@LaunchedEffect
+                    volumeManager.checkVolumeOnAppOpen()
+                }
                 
-                // 音量过低警告弹窗
+                // 音量过低警告弹窗（与 iOS 一致：标题+文案+调至 70%/暂不）
                 if (showVolumeWarning && volumeWarningInfo != null) {
                     VolumeWarningDialog(
-                        currentVolumePercent = volumeWarningInfo!!.currentVolumePercent,
-                        thresholdPercent = volumeWarningInfo!!.thresholdPercent,
                         onDismiss = { volumeManager.dismissVolumeWarningDialog() },
-                        onOpenSettings = {
+                        onAutoAdjust = {
+                            volumeManager.setSystemVolume(0.7f)
                             volumeManager.dismissVolumeWarningDialog()
-                            // 打开系统音量设置
-                            try {
-                                val intent = Intent(android.provider.Settings.ACTION_SOUND_SETTINGS)
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                // 如果无法打开设置，忽略错误
-                            }
                         }
                     )
                 }
@@ -683,14 +696,12 @@ private fun UpdateAvailableDialog(
 }
 
 /**
- * 音量过低警告弹窗
+ * 音量过低警告弹窗（与 iOS 一致：标题「音量较低」+ 文案「检测到音量过低，是否帮您自动调整音量？」+ 调至 70% / 暂不）
  */
 @Composable
 private fun VolumeWarningDialog(
-    currentVolumePercent: Int,
-    thresholdPercent: Int,
     onDismiss: () -> Unit,
-    onOpenSettings: () -> Unit
+    onAutoAdjust: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -706,99 +717,33 @@ private fun VolumeWarningDialog(
         },
         title = {
             Text(
-                text = stringResource(R.string.volume_reminder_title),
+                text = stringResource(R.string.low_volume_alert_title),
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
                 textAlign = TextAlign.Center
             )
         },
         text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.volume_reminder_body_detail, currentVolumePercent, thresholdPercent),
-                    color = Color.White.copy(alpha = 0.9f),
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // 音量条指示
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    @Suppress("DEPRECATION")
-                    Icon(
-                        imageVector = Icons.Filled.VolumeOff,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(8.dp)
-                            .background(
-                                color = Color.White.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(fraction = currentVolumePercent / 100f)
-                                .background(
-                                    color = if (currentVolumePercent < thresholdPercent) Orange else Green,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                        )
-                        // 阈值标记
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .width(2.dp)
-                                .align(Alignment.CenterStart)
-                                .offset(x = (thresholdPercent).dp * 2) // 粗略的比例
-                                .background(Color.White)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    @Suppress("DEPRECATION")
-                    Icon(
-                        imageVector = Icons.Filled.VolumeUp,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "当前: $currentVolumePercent% | 建议: ≥$thresholdPercent%",
-                    fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.6f)
-                )
-            }
+            Text(
+                text = stringResource(R.string.low_volume_alert_message),
+                color = Color.White.copy(alpha = 0.9f),
+                textAlign = TextAlign.Center,
+                lineHeight = 22.sp
+            )
         },
         confirmButton = {
             Button(
-                onClick = onOpenSettings,
-                colors = ButtonDefaults.buttonColors(containerColor = Purple500)
+                onClick = onAutoAdjust,
+                colors = ButtonDefaults.buttonColors(containerColor = Orange)
             ) {
-                Text(stringResource(R.string.go_to_settings))
+                Text(stringResource(R.string.volume_auto_adjust_70))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text(
-                    text = stringResource(R.string.got_it),
-                    color = Color.White.copy(alpha = 0.7f)
+                    text = stringResource(R.string.low_volume_alert_dismiss),
+                    color = Color.White.copy(alpha = 0.8f)
                 )
             }
         }

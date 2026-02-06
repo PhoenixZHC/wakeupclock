@@ -85,17 +85,19 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     }
     
     /**
-     * 删除闹钟
+     * 删除闹钟（先取消主闹钟与其防赖床提醒再删库，与 iOS 一致）
      */
     fun deleteAlarm(alarm: AlarmModel) {
         viewModelScope.launch {
             alarmScheduler.cancelAlarm(alarm)
+            val s = settings.value
+            alarmScheduler.cancelAntiSnoozeAlarms(alarm.id, s.antiSnoozeCount)
             alarmRepository.deleteAlarm(alarm)
         }
     }
     
     /**
-     * 切换闹钟启用状态
+     * 切换闹钟启用状态（关闭时同时取消防赖床提醒，与 iOS 一致）
      */
     fun toggleAlarm(alarm: AlarmModel) {
         viewModelScope.launch {
@@ -106,6 +108,8 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
                 alarmScheduler.scheduleAlarm(alarm.copy(enabled = true))
             } else {
                 alarmScheduler.cancelAlarm(alarm)
+                val s = settings.value
+                alarmScheduler.cancelAntiSnoozeAlarms(alarm.id, s.antiSnoozeCount)
             }
         }
     }
@@ -145,9 +149,11 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun resetAllData() {
         viewModelScope.launch {
-            // 取消所有闹钟
+            val s = settings.value
+            // 取消所有闹钟及其防赖床提醒
             alarms.value.forEach { alarm ->
                 alarmScheduler.cancelAlarm(alarm)
+                alarmScheduler.cancelAntiSnoozeAlarms(alarm.id, s.antiSnoozeCount)
             }
             
             // 删除所有数据

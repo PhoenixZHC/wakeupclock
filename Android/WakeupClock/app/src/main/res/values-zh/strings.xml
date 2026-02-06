@@ -196,6 +196,13 @@
     <string name="volume_reminder_time">提醒时间</string>
     <string name="volume_reminder_channel_name">睡前提醒</string>
     <string name="volume_reminder_channel_desc">睡前音量提醒通知</string>
+    <string name="volume_reminder_open_notification_settings">若收不到提示音或锁屏提醒，请在此打开通知设置，为「睡前提醒」开启声音与锁屏显示</string>
+    <string name="open_notification_settings">打开通知设置</string>
+    <string name="volume_auto_adjust_70">调至 70%</string>
+    <!-- 打开应用时音量过低弹窗（与 iOS 一致） -->
+    <string name="low_volume_alert_title">音量较低</string>
+    <string name="low_volume_alert_message">检测到音量过低，是否帮您自动调整音量？</string>
+    <string name="low_volume_alert_dismiss">暂不</string>
     
     <!-- Background Protection -->
     <string name="background_protection_title">后台保护</string>

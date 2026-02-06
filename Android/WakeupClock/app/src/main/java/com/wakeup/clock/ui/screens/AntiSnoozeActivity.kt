@@ -67,9 +67,9 @@ class AntiSnoozeActivity : ComponentActivity() {
                     reminderIndex = reminderIndex,
                     totalReminders = totalReminders,
                     onConfirm = {
-                        // 用户确认醒了，停止声音并取消剩余提醒
+                        // 用户确认当前这一次，只取消本条提醒，其余防赖床提醒仍按时响
                         stopAlarmService()
-                        alarmScheduler.cancelAntiSnoozeAlarms(alarmId, settings.antiSnoozeCount)
+                        alarmScheduler.cancelAntiSnoozeAlarm(alarmId, reminderIndex)
                         finish()
                     },
                     onTimeout = {

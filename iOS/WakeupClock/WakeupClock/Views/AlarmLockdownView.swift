@@ -24,6 +24,8 @@ struct AlarmLockdownView: View {
     @State private var currentTime = Date()
     @State private var timeTimer: Timer?
     @State private var flashTimer: Timer?
+    /// 防止 onAppear 被 SwiftUI 多次调用时重复播放
+    @State private var hasStartedAlarm = false
     
     var body: some View {
         ZStack {
@@ -50,12 +52,16 @@ struct AlarmLockdownView: View {
         }
         .ignoresSafeArea(.all, edges: [.bottom]) // 只在底部忽略安全区域
         .onAppear {
-            startAlarm()
+            if !hasStartedAlarm {
+                hasStartedAlarm = true
+                startAlarm()
+            }
             selectRandomMission()
             startTimeTimer()
             startFlashAnimation()
         }
         .onDisappear {
+            hasStartedAlarm = false
             stopAlarm()
             stopTimeTimer()
             stopFlashAnimation()

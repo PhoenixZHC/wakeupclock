@@ -21,9 +21,16 @@ struct ContentView: View {
     
     @State private var currentView: AppViewState = .dashboard
     @State private var activeAlarm: AlarmModel?
+    /// 防赖床提醒的 AlarmKit UUID；非空表示当前是提醒响铃，完成任务后只取消此条
+    @State private var activeReminderAlarmId: String?
     @State private var cancellables = Set<AnyCancellable>()
     @State private var showSafetyNotice = false
     @State private var showLowVolumeAlert = false
+    /// 「刚响过」恢复：滑动/音量键关闭闹钟后未走 stopIntent，提示用户是否现在完成任务
+    @State private var showRecentAlarmRecoveryAlert = false
+    @State private var recoveryAlarm: AlarmModel?
+    /// 上次检测音量的时间戳（用于防抖，避免下拉通知栏等短暂切换时重复检测）
+    @State private var lastVolumeCheckTime: Date?
     
     var body: some View {
         ZStack {
@@ -57,24 +64,26 @@ struct ContentView: View {
         .onAppear {
             setupManagers()
             observeAlarmKitIntents()
-            // 检查是否有待处理的闹钟（从锁屏状态唤醒时）
             checkPendingAlarm()
-            // 首次打开安全提示
             checkSafetyNoticeIfNeeded()
-            // 初始化睡前提醒并检测当前音量
             initializeVolumeReminder()
-            // 设置 requestReview 环境值给 AppReviewManager
             AppReviewManager.shared.setRequestReviewAction { requestReview() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                alarmManager.refreshSkipHolidaysAlarms()
+            }
+            // 多次延迟检查 pending，应对系统 intent 投递或 SwiftData 加载稍慢（如滑动/音量键关闭后用户再打开应用）
+            scheduleDelayedPendingChecks(delays: [1.5, 3.0])
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
-            // 当应用从后台进入前台时，检查待处理的闹钟
             if newPhase == .active && oldPhase != .active {
                 checkPendingAlarm()
                 checkSafetyNoticeIfNeeded()
-                // 检测当前音量
+                // 每次从非 active 回到前台都检测音量，防抖 10 秒内不重复（避免下拉通知栏等短暂切换重复提示）
                 checkVolumeOnForeground()
-                // 记录应用打开并检查是否需要请求评价（从后台/非活跃状态进入前台时记录）
                 AppReviewManager.shared.recordAppOpen()
+                alarmManager.refreshSkipHolidaysAlarms()
+                scheduleDelayedPendingChecks(delays: [1.0, 2.0])
+                tryShowRecentAlarmRecovery()
             }
         }
         .alert(LocalizedString("safetyNoticeTitle"), isPresented: $showSafetyNotice) {
@@ -85,9 +94,28 @@ struct ContentView: View {
             Text(LocalizedString("safetyNoticeMessage"))
         }
         .alert(LocalizedString("lowVolumeAlertTitle"), isPresented: $showLowVolumeAlert) {
-            Button(LocalizedString("ok")) { }
+            Button(LocalizedString("lowVolumeAlertAutoAdjust")) {
+                VolumeCheckManager.shared.setSystemVolume(to: 0.7)
+            }
+            Button(LocalizedString("lowVolumeAlertDismiss"), role: .cancel) { }
         } message: {
             Text(LocalizedString("lowVolumeAlertMessage"))
+        }
+        .alert(LocalizedString("recentAlarmRecoveryTitle"), isPresented: $showRecentAlarmRecoveryAlert) {
+            Button(LocalizedString("recentAlarmRecoveryYes")) {
+                if let alarm = recoveryAlarm {
+                    SoundManager.shared.playAlarmSound(level: .normal)
+                    activeAlarm = alarm
+                    activeReminderAlarmId = nil
+                    currentView = .alarmLockdown
+                }
+                recoveryAlarm = nil
+            }
+            Button(LocalizedString("recentAlarmRecoveryNo"), role: .cancel) {
+                recoveryAlarm = nil
+            }
+        } message: {
+            Text(LocalizedString("recentAlarmRecoveryMessage"))
         }
     }
     
@@ -105,57 +133,25 @@ struct ContentView: View {
             .receive(on: DispatchQueue.main)
             .sink { [self] notification in
                 guard let alarmId = notification.userInfo?["alarmId"] as? String else { return }
-                
-                // 如果已经在闹钟界面，忽略
                 guard currentView != .alarmLockdown else { return }
                 
-                // 尝试查找闹钟
+                let reminderAlarmId = notification.userInfo?["reminderAlarmId"] as? String
                 if let alarm = alarms.first(where: { $0.id == alarmId }) {
                     #if DEBUG
-                    print("🔔 从通知触发闹钟: \(alarm.label) at \(alarm.time)")
+                    print("🔔 从通知触发闹钟: \(alarm.label) at \(alarm.time)" + (reminderAlarmId != nil ? " [防赖床提醒]" : ""))
                     #endif
-                    // 播放闹钟声音
                     SoundManager.shared.playAlarmSound(level: .normal)
                     activeAlarm = alarm
+                    activeReminderAlarmId = reminderAlarmId
                     currentView = .alarmLockdown
                 } else {
                     #if DEBUG
                     print("⚠️ 未找到闹钟 ID: \(alarmId)，将在稍后重试")
                     #endif
-                    // 闹钟数据可能还没加载，保存到待处理队列
-                    PendingAlarmManager.setPendingAlarm(id: alarmId)
+                    PendingAlarmManager.setPendingAlarm(id: alarmId, reminderId: reminderAlarmId)
                 }
             }
             .store(in: &cancellables)
-        
-        // 监听确认清醒意图
-        NotificationCenter.default.publisher(for: .confirmAwake)
-            .sink { notification in
-                guard let originalAlarmId = notification.userInfo?["originalAlarmId"] as? String,
-                      let reminderIndex = notification.userInfo?["reminderIndex"] as? Int else {
-                    return
-                }
-                
-                // 用户确认清醒，取消剩余的提醒
-                Task {
-                    await handleConfirmAwake(originalAlarmId: originalAlarmId, reminderIndex: reminderIndex)
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func handleConfirmAwake(originalAlarmId: String, reminderIndex: Int) async {
-        // 取消所有防重新入睡提醒
-        do {
-            try await AlarmKitManager.shared.cancelAntiSnoozeReminders(originalAlarmId: originalAlarmId)
-            #if DEBUG
-            print("✅ 用户确认清醒，已取消剩余提醒")
-            #endif
-        } catch {
-            #if DEBUG
-            print("❌ 取消防重新入睡提醒失败: \(error)")
-            #endif
-        }
     }
 
     // MARK: - 首次安全提示
@@ -231,13 +227,17 @@ struct ContentView: View {
         }
     }
     
-    /// 应用进入前台时检测音量
+    /// 应用进入前台时检测音量（带防抖，10 秒内不重复检测）
     private func checkVolumeOnForeground() {
-        let volumeManager = VolumeCheckManager.shared
+        let now = Date()
+        // 防抖：10 秒内不重复检测，避免下拉通知栏等短暂切换时重复提示
+        if let lastCheck = lastVolumeCheckTime, now.timeIntervalSince(lastCheck) < 10 {
+            return
+        }
+        lastVolumeCheckTime = now
         
-        // 检测当前音量，如果过低则提醒
+        let volumeManager = VolumeCheckManager.shared
         if volumeManager.checkVolumeOnAppOpen() {
-            // 延迟显示，避免与其他弹窗冲突
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 if !showSafetyNotice {
                     showLowVolumeAlert = true
@@ -246,85 +246,145 @@ struct ContentView: View {
         }
     }
     
-    /// 检查是否有待处理的闹钟（用于从锁屏状态唤醒应用时）
+    /// 检查是否有待处理的闹钟（用于从锁屏/后台唤醒时；内带 0.5s 延迟以等 SwiftData）
     private func checkPendingAlarm() {
-        // 如果已经在闹钟界面，不重复检查
         guard currentView != .alarmLockdown else { return }
-        
-        // 延迟执行，确保 SwiftData 已加载完成
+        let alarmsSnapshot = alarms
+        let settingsSnapshot = settings
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // 再次检查状态
-            guard currentView != .alarmLockdown else { return }
-            
-            // 检查是否有待处理的闹钟（不消费，先检查）
+            guard self.currentView != .alarmLockdown else { return }
             guard PendingAlarmManager.hasPendingAlarm() else { return }
-            
-            // 消费待处理的闹钟
-            if let alarmId = PendingAlarmManager.consumePendingAlarm() {
-                if let alarm = alarms.first(where: { $0.id == alarmId }) {
+            let (alarmId, reminderAlarmId) = PendingAlarmManager.consumePendingAlarm()
+            guard let alarmId = alarmId, let alarm = alarmsSnapshot.first(where: { $0.id == alarmId }) else {
+                if alarmId != nil {
                     #if DEBUG
-                    print("🔔 从待处理队列恢复闹钟: \(alarm.label) at \(alarm.time)")
+                    print("⚠️ 待处理闹钟未找到: \(alarmId!)")
                     #endif
-                    
-                    // 触发闹钟界面
-                    SoundManager.shared.playAlarmSound(level: .normal)
-                    activeAlarm = alarm
-                    currentView = .alarmLockdown
-                } else {
-                    #if DEBUG
-                    print("⚠️ 待处理闹钟未找到: \(alarmId)")
-                    #endif
+                }
+                return
+            }
+            // 防止延迟投递的 intent：若闹钟/防赖床的「预定触发时间」已过去过久（超过 5 分钟），不再恢复界面
+            let calendar = Calendar.current
+            let now = Date()
+            guard let (hour, minute) = alarm.timeComponents,
+                  let baseTrigger = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: now) else {
+                return
+            }
+            let interval = settingsSnapshot.first?.antiSnoozeInterval ?? 3
+            let count = settingsSnapshot.first?.antiSnoozeCount ?? 2
+            let latestTrigger: Date = reminderAlarmId != nil
+                ? (calendar.date(byAdding: .minute, value: interval * count, to: baseTrigger) ?? baseTrigger)
+                : baseTrigger
+            let grace: TimeInterval = 300 // 5 分钟
+            if now.timeIntervalSince(latestTrigger) > grace {
+                #if DEBUG
+                print("⏰ 待处理闹钟已过期（预定 \(alarm.time)" + (reminderAlarmId != nil ? " 最后防赖床约 \(interval * count) 分钟后" : "") + "），不再恢复")
+                #endif
+                return
+            }
+            #if DEBUG
+            print("🔔 从待处理队列恢复闹钟: \(alarm.label) at \(alarm.time)" + (reminderAlarmId != nil ? " [防赖床提醒]" : ""))
+            #endif
+            // 不在此处播放声音：AlarmLockdownView.onAppear 会调用 startAlarm() 统一播放，避免重复播放
+            activeAlarm = alarm
+            activeReminderAlarmId = reminderAlarmId
+            currentView = .alarmLockdown
+        }
+    }
+    
+    /// 在指定延迟后再次执行 checkPendingAlarm，提高 intent 延迟触达时的命中率
+    private func scheduleDelayedPendingChecks(delays: [Double]) {
+        for delay in delays {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                self.checkPendingAlarm()
+            }
+        }
+    }
+    
+    /// 若用户通过滑动或音量键关闭了系统闹钟（未走 stopIntent），进入应用后提示是否现在完成任务
+    private func tryShowRecentAlarmRecovery() {
+        let key = "LastRecentAlarmRecoveryShown"
+        let interval: TimeInterval = 300 // 5 分钟内不重复弹
+        let now = Date().timeIntervalSince1970
+        if now - (UserDefaults.standard.double(forKey: key)) < interval { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            guard self.currentView != .alarmLockdown else { return }
+            guard !PendingAlarmManager.hasPendingAlarm() else { return }
+            let calendar = Calendar.current
+            let nowDate = Date()
+            for minuteOffset in 0..<3 {
+                guard let checkDate = calendar.date(byAdding: .minute, value: -minuteOffset, to: nowDate) else { continue }
+                if let alarm = alarms.first(where: { $0.enabled && $0.shouldTrigger(on: checkDate) }) {
+                    UserDefaults.standard.set(now, forKey: key)
+                    recoveryAlarm = alarm
+                    showRecentAlarmRecoveryAlert = true
+                    return
                 }
             }
         }
     }
     
     private func handleMissionSolved() {
-        // 任务完成后的处理
         let alarmLabel = activeAlarm?.label
         let alarmId = activeAlarm?.id
+        let isReminder = activeReminderAlarmId != nil
         UserStatsManager.shared.recordWakeUp(alarmLabel: alarmLabel)
         SoundManager.shared.stopAlarmSound()
         
-        // 如果是"响一次"模式，禁用闹钟
-        if let alarm = activeAlarm, alarm.repeatModeEnum == .once {
-            alarm.enabled = false
-            alarmManager.updateAlarm(alarm)
+        if isReminder {
+            // 防赖床提醒：只取消本条提醒，不调度新提醒、不修改主闹钟
+            if let reminderId = activeReminderAlarmId {
+                Task {
+                    if #available(iOS 26.0, *) {
+                        try? await AlarmKitManager.shared.cancelAlarm(id: reminderId)
+                    }
+                }
+            }
+        } else {
+            // 主闹钟：若是“响一次”则禁用；并调度防赖床提醒
+            if let alarm = activeAlarm, alarm.repeatModeEnum == .once {
+                alarm.enabled = false
+                alarmManager.updateAlarm(alarm)
+            }
+            // 防赖床提醒在「完成主闹钟任务」之后再调度，间隔从完成时刻起算，避免 8:00 响铃、8:03 还没做完题就响第一次提醒
+            if let alarmId = alarmId {
+                scheduleAntiSnoozeIfNeeded(alarmId: alarmId)
+            }
+            // 跳过节假日的重复闹钟：完成后重新排下一次合法日期，否则不会再响
+            if let alarm = activeAlarm, alarm.skipHolidays && alarm.repeatModeEnum != .once {
+                alarmManager.updateAlarm(alarm)
+            }
         }
         
-        // 调度防重新入睡提醒
-        if let alarmId = alarmId {
-            scheduleAntiSnoozeIfNeeded(alarmId: alarmId)
-        }
-        
-        // 使用withAnimation确保流畅过渡，避免界面错位
         withAnimation(.easeInOut(duration: 0.3)) {
             activeAlarm = nil
+            activeReminderAlarmId = nil
             currentView = .dashboard
         }
     }
     
+    /// 在用户完成主闹钟任务后调用；防赖床的两次提醒从「当前完成时刻」起算间隔（如完成时 8:05，间隔 3 分钟则 8:08、8:11），不会在 8:03 就响
     private func scheduleAntiSnoozeIfNeeded(alarmId: String) {
-        // 获取设置
         let appSettings = settings.first ?? AppSettings()
-        
-        // 如果启用了防重新入睡功能
         guard appSettings.enableAntiSnooze else { return }
+        guard alarms.first(where: { $0.id == alarmId }) != nil else { return }
         
         Task {
             do {
-                try await AlarmKitManager.shared.scheduleAntiSnoozeReminders(
-                    originalAlarmId: alarmId,
-                    intervalMinutes: appSettings.antiSnoozeInterval,
-                    count: appSettings.antiSnoozeCount
-                )
-                
+                if #available(iOS 26.0, *) {
+                    try await AlarmKitManager.shared.scheduleAntiSnoozeReminders(
+                        originalAlarmId: alarmId,
+                        allAlarms: alarms,
+                        intervalMinutes: appSettings.antiSnoozeInterval,
+                        count: appSettings.antiSnoozeCount
+                    )
+                }
                 #if DEBUG
-                print("✅ 防重新入睡提醒已调度")
+                print("✅ 防赖床提醒已调度")
                 #endif
             } catch {
                 #if DEBUG
-                print("❌ 调度防重新入睡提醒失败: \(error)")
+                print("❌ 调度防赖床提醒失败: \(error)")
                 #endif
             }
         }
